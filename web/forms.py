@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.gis.geos import Point
 
-from registry.models import Site
+from registry.models import EvidenceEntry, Site
 
 
 class SiteForm(forms.ModelForm):
@@ -48,3 +48,51 @@ class SiteForm(forms.ModelForm):
         if commit:
             site.save()
         return site
+
+class EvidenceForm(forms.Form):
+    kind = forms.ChoiceField(
+        choices=[
+            (EvidenceEntry.Kind.NOTE, "Note"),
+            (EvidenceEntry.Kind.CHECK_IN, "Field check-in"),
+        ]
+    )
+    body = forms.CharField(
+        label="What happened?", widget=forms.Textarea(attrs={"rows": 4})
+    )
+    tags = forms.CharField(
+        required=False, help_text="Separate with commas, e.g. inspection, delivery"
+    )
+    latitude = forms.FloatField(required=False, min_value=-90, max_value=90)
+    longitude = forms.FloatField(required=False, min_value=-180, max_value=180)
+    new_status = forms.ChoiceField(
+        required=False,
+        label="Also update the site’s status",
+        choices=[("", "Keep the current status")] + list(Site.Status.choices),
+    )
+
+    def __init__(self, *args, site, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.site = site
+
+    def clean_tags(self):
+        tags = []
+        for part in self.cleaned_data["tags"].split(","):
+            tag = part.strip().lower()[:40]
+            if tag and tag not in tags:
+                tags.append(tag)
+        if len(tags) > 10:
+            raise forms.ValidationError("Use at most 10 tags.")
+        return tags
+
+    def clean(self):
+        data = super().clean()
+        lat, lon = data.get("latitude"), data.get("longitude")
+        if (lat is None) != (lon is None):
+            raise forms.ValidationError(
+                "Give both latitude and longitude, or leave both empty."
+            )
+        if data.get("kind") == EvidenceEntry.Kind.CHECK_IN and lat is None:
+            raise forms.ValidationError("A field check-in needs a location.")
+        if data.get("new_status") == self.site.status:
+            data["new_status"] = ""
+        return data

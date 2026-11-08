@@ -17,4 +17,7 @@ urlpatterns = [
     path("app/sites/", views.sites_list, name="sites"),
     path("app/sites/new/", views.site_create, name="site_new"),
     path("app/sites/<int:pk>/edit/", views.site_edit, name="site_edit"),
+    path("app/sites/<int:pk>/", views.site_detail, name="site_detail"),
+    path("app/sites/<int:pk>/evidence/new/", views.evidence_new, name="evidence_new"),
+    path("app/sites/<int:pk>/publish/", views.site_publish, name="site_publish"),
 ]

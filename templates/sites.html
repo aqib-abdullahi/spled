@@ -30,7 +30,7 @@
   {% for site in sites %}
     <div class="siterow">
       <div class="site-name">
-        <b>{{ site.name }}</b>
+        <b><a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a></b>
         <div class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</div>
       </div>
       <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>

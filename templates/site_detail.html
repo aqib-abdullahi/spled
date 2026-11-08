@@ -1,0 +1,88 @@
+{% extends "app_base.html" %}
+{% block title %}{{ site.name }}{% endblock %}
+{% block content %}
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / {{ site.name }}</nav>
+
+<div class="pagehead">
+  <div>
+    <h1>{{ site.name }}</h1>
+    <p class="meta">
+      <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+      <span class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</span>
+      <span class="mono muted">{{ site.location.y|floatformat:4 }}, {{ site.location.x|floatformat:4 }}</span>
+    </p>
+  </div>
+  <div class="actions">
+    {% if can_edit %}<a class="btn" href="{% url 'site_edit' site.pk %}">Edit site</a>{% endif %}
+    {% if can_log %}<a class="btn btn-primary" href="{% url 'evidence_new' site.pk %}">+ Log evidence</a>{% endif %}
+  </div>
+</div>
+
+{% if is_contractor %}
+  <div class="notice" role="status">Contractor entries need a review step before they count. That review isn’t available yet, so logging is switched off for your role.</div>
+{% endif %}
+{% if not chain_ok %}
+  <div class="alert" role="alert">The evidence record for this site fails its integrity check. Contact an administrator.</div>
+{% endif %}
+
+<div class="detailgrid">
+  <section class="card main" aria-label="Evidence timeline">
+    <h2>Evidence timeline</h2>
+    {% for e in evidence %}
+      <article class="tl">
+        <div class="mono muted">{{ e.created_at|date:"d M Y" }}<br>{{ e.created_at|time:"H:i" }}</div>
+        <div>
+          <div class="tl-tags">
+            <span class="tag">{{ e.get_kind_display }}</span>
+            {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>
+            {% elif e.location %}<span class="vb vb-no">Not verified on site</span>
+            {% else %}<span class="vb vb-none">No location</span>{% endif %}
+            {% if e.amends_id %}<span class="vb vb-no">Amends an earlier entry</span>{% endif %}
+          </div>
+          <p>{{ e.body|linebreaksbr }}</p>
+          {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+          <div class="muted">{{ e.author.full_name }}{% if e.distance_to_site_m is not None %} · {{ e.distance_to_site_m|floatformat:0 }} m from the site pin{% endif %}</div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No evidence yet.{% if can_log %} Log the first entry.{% endif %}</p>
+    {% endfor %}
+  </section>
+
+  <div class="side">
+    <section class="card" aria-label="Progress">
+      <h2>Progress</h2>
+      <div class="progress" style="margin: 14px 0">
+        <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+        <span class="mono">{{ site.progress }}%</span>
+      </div>
+      <div class="muted">Target date · <span class="mono">{{ site.target_date|date:"d M Y"|default:"not set" }}</span></div>
+      <div class="muted" style="margin-top:6px">Record · {{ evidence|length }} entr{{ evidence|length|pluralize:"y,ies" }}{% if chain_ok %}, chain intact{% endif %}</div>
+    </section>
+
+    <section class="card" aria-label="Visibility">
+      <h2>Visibility</h2>
+      {% if site.is_public %}
+        <p class="muted">Published. Anyone can see this site on the public portal.</p>
+        {% if can_publish_role %}
+          <form method="post" action="{% url 'site_publish' site.pk %}">{% csrf_token %}
+            <button class="btn" type="submit">Unpublish</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <p class="muted">Private. Only your team can see this site.</p>
+        {% if can_publish_role and org.is_verified %}
+          <form method="post" action="{% url 'site_publish' site.pk %}">{% csrf_token %}
+            <button class="btn btn-dark" type="submit">Publish to public portal</button>
+          </form>
+        {% elif can_publish_role %}
+          <button class="btn btn-dark" disabled>Publish to public portal</button>
+          <p class="muted">Your organisation must be verified first.</p>
+        {% else %}
+          <p class="muted">Only admins and editors can publish.</p>
+        {% endif %}
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

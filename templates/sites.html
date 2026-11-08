@@ -1,0 +1,51 @@
+{% extends "app_base.html" %}
+{% block title %}Sites{% endblock %}
+{% block content %}
+<div class="pagehead">
+  <div>
+    <h1>Sites</h1>
+    <p class="muted" style="margin:6px 0 0">{{ org.name }}</p>
+  </div>
+  {% if can_edit %}<a class="btn btn-primary" href="{% url 'site_new' %}">+ New site</a>{% endif %}
+</div>
+
+<form method="get" class="toolbar" role="search">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="field grow">
+    <label for="q" class="sr">Search sites</label>
+    <input type="search" id="q" name="q" value="{{ q }}" placeholder="Search sites or owners…">
+  </div>
+  <button class="btn btn-dark" type="submit">Search</button>
+</form>
+
+<nav class="chips" aria-label="Filter by status">
+  {% for c in chips %}
+    <a class="chip{% if c.key == status %} on{% endif %}"
+       href="?status={{ c.key }}{% if q %}&q={{ q|urlencode }}{% endif %}"
+       {% if c.key == status %}aria-current="true"{% endif %}>{{ c.label }} {{ c.count }}</a>
+  {% endfor %}
+</nav>
+
+<section class="card sitelist" aria-label="Sites">
+  {% for site in sites %}
+    <div class="siterow">
+      <div class="site-name">
+        <b>{{ site.name }}</b>
+        <div class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</div>
+      </div>
+      <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+      <div class="progress">
+        <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+        <span class="mono">{{ site.progress }}%</span>
+      </div>
+      <span class="mono muted site-date">{{ site.target_date|date:"d M Y"|default:"No target" }}</span>
+      <span class="muted site-evidence">
+        {% if site.last_evidence %}{{ site.last_evidence|timesince }} ago{% else %}No evidence yet{% endif %}
+      </span>
+      {% if can_edit %}<a class="rowlink" href="{% url 'site_edit' site.pk %}">Edit</a>{% endif %}
+    </div>
+  {% empty %}
+    <p class="muted">No sites match.{% if can_edit %} <a href="{% url 'site_new' %}"><b>Add one</b></a>.{% endif %}</p>
+  {% endfor %}
+</section>
+{% endblock %}

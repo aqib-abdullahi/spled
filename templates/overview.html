@@ -1,10 +1,60 @@
 {% extends "app_base.html" %}
 {% block title %}Overview{% endblock %}
 {% block content %}
-<h1>Overview</h1>
-<div class="card">
-  <p class="muted" style="margin:0">
-    You’re signed in as {{ request.user.full_name }}. The dashboard comes next.
-  </p>
-</div>
+{% if not membership %}
+  <h1>Welcome</h1>
+  <div class="card">
+    <p style="margin:0">You’re not part of an organisation yet.</p>
+    <p class="muted" style="margin:6px 0 0">Ask an administrator to invite you, or create one from the admin.</p>
+  </div>
+{% else %}
+  <div>
+    <h1>Overview</h1>
+    <p class="muted" style="margin:6px 0 0">{{ org.name }} · {{ total }} site{{ total|pluralize }}</p>
+  </div>
+
+  {% if not org.is_verified %}
+    <div class="notice" role="status">
+      <b>Pending verification.</b> You can set up sites privately now. Publishing to the public portal unlocks once your organisation is verified.
+    </div>
+  {% endif %}
+
+  <section class="stats" aria-label="Status summary">
+    {% for s in status_counts %}
+      <div class="card stat">
+        <div class="stat-label"><span class="dot st-{{ s.key }}"></span>{{ s.label }}</div>
+        <div class="stat-num">{{ s.count }}</div>
+      </div>
+    {% endfor %}
+    <div class="stat attention">
+      <div class="stat-label">Needs attention</div>
+      <div class="stat-num">{{ attention_count }}</div>
+      <div class="stat-note">delayed, stalled, or no evidence for {{ stale_days }}+ days</div>
+    </div>
+  </section>
+
+  <section class="card sitelist" aria-label="Sites">
+    <h2>Sites</h2>
+    {% for site in sites %}
+      <div class="siterow">
+        <div class="site-name">
+          <b>{{ site.name }}</b>
+          <div class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</div>
+        </div>
+        <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+        <div class="progress">
+          <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+          <span class="mono">{{ site.progress }}%</span>
+        </div>
+        <span class="mono muted site-date">{{ site.target_date|date:"d M Y"|default:"No target" }}</span>
+        <span class="muted site-evidence">
+          {% if site.last_evidence %}{{ site.last_evidence|timesince }} ago{% else %}No evidence yet{% endif %}
+        </span>
+        {% if site.needs_attention %}<span class="tag-attention">Needs attention</span>{% endif %}
+      </div>
+    {% empty %}
+      <p class="muted">No sites yet. Add the first one from the admin for now.</p>
+    {% endfor %}
+  </section>
+{% endif %}
 {% endblock %}

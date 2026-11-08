@@ -1,5 +1,5 @@
 from django.contrib.gis.geos import Point, Polygon
-from django.db import connection
+from django.db import DatabaseError,connection, transaction
 from django.test import TestCase
 
 from accounts.models import User
@@ -76,16 +76,40 @@ class EvidenceTests(TestCase):
         self.assertEqual(e2.previous_hash, e1.content_hash)
         self.assertEqual(EvidenceEntry.verify_chain(self.site), [])
 
-    def test_tampering_is_detected(self):
-        e1 = self.add("a")
-        self.add("b")
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE registry_evidenceentry SET body = %s WHERE id = %s",
-                ["tampered", e1.id],
-            )
-        problems = EvidenceEntry.verify_chain(self.site)
-        self.assertIn(e1.id, [p[0] for p in problems])
+    def test_database_refuses_raw_changes(self):
+        e = self.add("a")
+        for sql in (
+            "UPDATE registry_evidenceentry SET body = 'x'",
+            "DELETE FROM registry_evidenceentry",
+            "TRUNCATE registry_evidenceentry",
+        ):
+            with self.assertRaises(DatabaseError):
+                with transaction.atomic():
+                    with connection.cursor() as cursor:
+                        cursor.execute(sql)
+        e.refresh_from_db()
+        self.assertEqual(e.body, "a")
+
+        def test_tampering_is_detected(self):
+            e1 = self.add("a")
+            self.add("b")
+            with connection.cursor() as cursor:
+                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+                cursor.execute(
+                    "ALTER TABLE registry_evidenceentry "
+                    "DISABLE TRIGGER evidence_no_update_delete"
+                )
+                cursor.execute(
+                    "UPDATE registry_evidenceentry SET body = %s WHERE id = %s",
+                    ["tampered", e1.id],
+                )
+                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+                cursor.execute(
+                    "ALTER TABLE registry_evidenceentry "
+                    "ENABLE TRIGGER evidence_no_update_delete"
+                )
+            problems = EvidenceEntry.verify_chain(self.site)
+            self.assertIn(e1.id, [p[0] for p in problems])
 
     def test_amendment_keeps_the_original(self):
         original = self.add("original")

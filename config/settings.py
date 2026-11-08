@@ -133,6 +133,13 @@ SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import sys
+
+if "test" in sys.argv:
+    # Fast, insecure hashing for the test run only.
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
 # --- GeoDjango libraries on Windows (OSGeo4W) ---
 if os.name == "nt":
     import glob

@@ -90,26 +90,26 @@ class EvidenceTests(TestCase):
         e.refresh_from_db()
         self.assertEqual(e.body, "a")
 
-        def test_tampering_is_detected(self):
-            e1 = self.add("a")
-            self.add("b")
-            with connection.cursor() as cursor:
-                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-                cursor.execute(
-                    "ALTER TABLE registry_evidenceentry "
-                    "DISABLE TRIGGER evidence_no_update_delete"
-                )
-                cursor.execute(
-                    "UPDATE registry_evidenceentry SET body = %s WHERE id = %s",
-                    ["tampered", e1.id],
-                )
-                cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
-                cursor.execute(
-                    "ALTER TABLE registry_evidenceentry "
-                    "ENABLE TRIGGER evidence_no_update_delete"
-                )
-            problems = EvidenceEntry.verify_chain(self.site)
-            self.assertIn(e1.id, [p[0] for p in problems])
+    def test_tampering_is_detected(self):
+        e1 = self.add("a")
+        self.add("b")
+        with connection.cursor() as cursor:
+            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+            cursor.execute(
+                "ALTER TABLE registry_evidenceentry "
+                "DISABLE TRIGGER evidence_no_update_delete"
+            )
+            cursor.execute(
+                "UPDATE registry_evidenceentry SET body = %s WHERE id = %s",
+                ["tampered", e1.id],
+            )
+            cursor.execute("SET CONSTRAINTS ALL IMMEDIATE")
+            cursor.execute(
+                "ALTER TABLE registry_evidenceentry "
+                "ENABLE TRIGGER evidence_no_update_delete"
+            )
+        problems = EvidenceEntry.verify_chain(self.site)
+        self.assertIn(e1.id, [p[0] for p in problems])
 
     def test_amendment_keeps_the_original(self):
         original = self.add("original")

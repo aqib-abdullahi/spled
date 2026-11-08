@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'accounts',
+    'organisations',
 ]
 
 AUTH_USER_MODEL = "accounts.User"

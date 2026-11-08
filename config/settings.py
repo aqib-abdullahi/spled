@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'accounts',
     'organisations',
+    'registry',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -125,6 +126,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

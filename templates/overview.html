@@ -1,0 +1,10 @@
+{% extends "app_base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<h1>Overview</h1>
+<div class="card">
+  <p class="muted" style="margin:0">
+    You’re signed in as {{ request.user.full_name }}. The dashboard comes next.
+  </p>
+</div>
+{% endblock %}

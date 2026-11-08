@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block body %}
+<header class="appbar">
+  <a class="brand" href="{% url 'overview' %}">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="3" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+    Spled
+  </a>
+
+  <nav class="mainnav" aria-label="Main">
+    <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}>Overview</a>
+    <span aria-disabled="true">Sites</span>
+    <span aria-disabled="true">Reports</span>
+    <span aria-disabled="true">Settings</span>
+  </nav>
+
+  <details class="usermenu">
+    <summary aria-label="Account menu">
+      <span class="avatar">{{ request.user.full_name|slice:":1"|upper }}</span>
+      <span class="who">{{ request.user.full_name }}</span>
+    </summary>
+    <div class="menu-panel">
+      <div>
+        <b>{{ request.user.full_name }}</b>
+        <div class="muted">{{ request.user.email }}</div>
+      </div>
+      <form method="post" action="{% url 'signout' %}">
+        {% csrf_token %}
+        <button class="btn btn-small" type="submit">Sign out</button>
+      </form>
+    </div>
+  </details>
+</header>
+
+<main class="page">{% block content %}{% endblock %}</main>
+
+<script>
+  document.addEventListener("click", function (e) {
+    document.querySelectorAll("details.usermenu[open]").forEach(function (d) {
+      if (!d.contains(e.target)) d.removeAttribute("open");
+    });
+  });
+</script>
+{% endblock %}

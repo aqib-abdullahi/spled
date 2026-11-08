@@ -9,6 +9,9 @@ from django.utils import timezone
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
+    
+    def get_by_natural_key(self, email):
+        return self.get(email__iexact=email)
 
     def _create_user(self, email, password, **extra_fields):
         if not email:

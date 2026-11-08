@@ -1,0 +1,185 @@
+:root {
+  --ink: #0e2a24;
+  --muted: #4f6860;
+  --page: #edf3f0;
+  --card: #ffffff;
+  --rule: #cbdad3;
+  --field: #6f8c81;
+  --mint: #3ddbb0;
+  --mint-tint: #d6f5eb;
+  --danger: #8a1f1f;
+  --danger-bg: #f6dada;
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+.muted { color: var(--muted); }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 20px; border-radius: var(--radius);
+  border: 1px solid var(--ink); background: transparent; color: var(--ink);
+  font: inherit; font-weight: 700; cursor: pointer; text-decoration: none;
+}
+.btn-primary { background: var(--mint); border-color: var(--mint); }
+.btn-dark { background: var(--ink); color: #fff; }
+.btn-small { min-height: 44px; padding: 0 14px; font-size: 14px; }
+
+/* Forms */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 14px; font-weight: 500; }
+.field input {
+  height: 48px; padding: 0 14px; width: 100%;
+  border: 1px solid var(--field); border-radius: var(--radius);
+  background: #fff; color: var(--ink); font: inherit; font-size: 15px;
+}
+.alert {
+  padding: 12px 14px; border-radius: var(--radius);
+  background: var(--danger-bg); color: var(--danger); font-weight: 700;
+}
+.stack { display: flex; flex-direction: column; gap: 20px; }
+
+/* Split layout (sign-in, sign-up) */
+.split { display: flex; flex-wrap: wrap; min-height: 100vh; }
+.split-side {
+  flex: 1 1 420px; background: var(--ink); color: #fff; padding: 48px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
+}
+.split-side h2 { font-size: 44px; line-height: 1.05; }
+.split-side p { color: #b5c9c0; font-size: 17px; max-width: 380px; margin: 16px 0 0; }
+.split-main {
+  flex: 1 1 520px; padding: 48px 56px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.split-main form { max-width: 400px; width: 100%; }
+.brand { display: flex; align-items: center; gap: 12px; font-size: 24px; font-weight: 800; }
+.accent { color: var(--mint); font-size: 12px; }
+
+/* App shell */
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 16px 40px; background: #fff; border-bottom: 1px solid var(--rule);
+}
+.topbar .brand { color: var(--ink); }
+.page { padding: 32px 40px; display: flex; flex-direction: column; gap: 24px; }
+.page h1 { font-size: 34px; }
+.card { background: #fff; border: 1px solid var(--rule); border-radius: var(--radius); padding: 24px; }
+
+/* ---------- Button states ---------- */
+.btn {
+  transition: background-color 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, transform 0.05s ease;
+}
+.btn:hover { background: var(--mint-tint); }
+.btn-primary:hover { background: #2fc49a; border-color: #2fc49a; }
+.btn-dark:hover { background: #1e3a33; border-color: #1e3a33; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled, .btn[aria-disabled="true"] {
+  opacity: 0.4; cursor: not-allowed; pointer-events: none;
+}
+
+/* Links and fields respond too */
+a:not(.btn):hover { text-decoration: underline; }
+.field input:hover { border-color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+}
+
+/* ---------- Responsive ---------- */
+html { -webkit-text-size-adjust: 100%; }
+.split { min-height: 100vh; min-height: 100dvh; }
+
+@media (max-width: 800px) {
+  /* Sign-in and sign-up: a slim brand banner above the form */
+  .split-side { flex-basis: auto; padding: 20px 24px; gap: 12px; }
+  .split-side h2 { font-size: 26px; }
+  .split-side p, .split-side .accent { display: none; }
+  .split-main { flex-basis: auto; padding: 32px 24px 48px; justify-content: flex-start; }
+  .split-main form { max-width: none; }
+  .split-main .btn { width: 100%; }
+
+  /* Inside the app */
+  .topbar { padding: 12px 16px; }
+  .page { padding: 24px 16px; }
+  .page h1 { font-size: 28px; }
+  .card { padding: 16px; }
+}
+
+@media (max-width: 800px) {
+  /* 16px stops iPhones zooming in when a field is tapped */
+  .field input { font-size: 16px; }
+}
+
+/* ---------- App shell ---------- */
+.appbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; gap: 24px;
+  padding: 12px 40px; background: #fff; border-bottom: 1px solid var(--rule);
+}
+.appbar .brand { color: var(--ink); text-decoration: none; }
+
+.mainnav { display: flex; gap: 4px; }
+.mainnav a, .mainnav span {
+  padding: 12px; font-weight: 500; color: var(--ink);
+  text-decoration: none; border-bottom: 3px solid transparent;
+}
+.mainnav a:hover { background: var(--mint-tint); text-decoration: none; }
+.mainnav a[aria-current="page"] { font-weight: 800; border-bottom-color: var(--ink); }
+.mainnav [aria-disabled="true"] { color: var(--muted); opacity: 0.55; cursor: default; }
+
+.usermenu { position: relative; margin-left: auto; }
+.usermenu summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center;
+  gap: 10px; min-height: 44px;
+}
+.usermenu summary::-webkit-details-marker { display: none; }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--mint);
+  display: flex; align-items: center; justify-content: center; font-weight: 800;
+}
+.usermenu .who { font-weight: 500; }
+.menu-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); min-width: 240px;
+  background: #fff; border: 1px solid var(--rule); border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(14, 42, 36, 0.12); padding: 16px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.menu-panel .btn { width: 100%; }
+
+@media (max-width: 800px) {
+  /* Sign-in and sign-up: stack the two halves, don't stretch them */
+  .split { flex-direction: column; flex-wrap: nowrap; min-height: 100dvh; }
+  .split-side { flex: none; }
+  .split-main { flex: 1 0 auto; }
+
+  /* App: slim top bar, tab bar along the bottom */
+  .appbar { padding: 10px 16px; gap: 12px; }
+  .usermenu .who { display: none; }
+  .mainnav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; gap: 0;
+    background: #fff; border-top: 1px solid var(--rule);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .mainnav a, .mainnav span {
+    flex: 1; text-align: center; padding: 14px 4px; font-size: 13px;
+    border-bottom: 0; border-top: 3px solid transparent;
+  }
+  .mainnav a[aria-current="page"] { border-top-color: var(--ink); }
+  .page { padding-bottom: 96px; }
+}

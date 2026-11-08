@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body %}
+<header class="pubbar">
+  <a class="brand" href="{% url 'home' %}">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="3" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+    Spled <span class="mono muted pubtag">public record</span>
+  </a>
+  <nav class="pubnav" aria-label="Main">
+    <a href="{% url 'projects' %}"{% if active == 'projects' %} aria-current="page"{% endif %}>Projects</a>
+    <span aria-disabled="true">Map</span>
+    <span aria-disabled="true">How evidence works</span>
+    {% if request.user.is_authenticated %}
+      <a class="btn btn-small" href="{% url 'overview' %}">Open your workspace</a>
+    {% else %}
+      <a class="btn btn-small" href="{% url 'signin' %}">Agency sign in</a>
+    {% endif %}
+  </nav>
+</header>
+<main class="page pubpage">
+  {% block content %}{% endblock %}
+</main>
+<footer class="pubfoot muted">
+  Status on this site comes from dated evidence logged by each project’s team. “Verified on site” means the reported location was inside or near the project site.
+</footer>
+{% endblock %}

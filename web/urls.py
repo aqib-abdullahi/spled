@@ -1,10 +1,12 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
-from . import views
+from . import public_views, views
 
 urlpatterns = [
-    path("", views.home, name="home"),
+    path("", public_views.public_home, name="home"),
+    path("projects/", public_views.public_projects, name="projects"),
+    path("projects/<int:pk>/", public_views.public_project, name="project"),
     path(
         "signin/",
         auth_views.LoginView.as_view(

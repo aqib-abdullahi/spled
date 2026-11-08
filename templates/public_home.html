@@ -1,0 +1,29 @@
+{% extends "public_base.html" %}
+{% block title %}Public record{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>See what’s being built, and what’s really happening.</h1>
+  <p>Every project status on Spled is backed by dated evidence from the field, not by claims alone.</p>
+  <form method="get" action="{% url 'projects' %}" class="toolbar" role="search">
+    <div class="field grow">
+      <label for="q" class="sr">Search projects</label>
+      <input type="search" id="q" name="q" placeholder="Search by project, place or owner…">
+    </div>
+    <button class="btn btn-dark" type="submit">Search</button>
+  </form>
+</section>
+
+<section class="pubstats" aria-label="At a glance">
+  <div class="card stat"><div class="stat-num">{{ project_count }}</div><div class="muted">published project{{ project_count|pluralize }}</div></div>
+  <div class="card stat"><div class="stat-num">{{ evidence_count }}</div><div class="muted">piece{{ evidence_count|pluralize }} of evidence</div></div>
+  <div class="card stat"><div class="stat-num">{{ verified_count }}</div><div class="muted">verified on site</div></div>
+</section>
+
+<section aria-label="Recently verified">
+  <div class="pagehead"><h2>Recently verified</h2><a href="{% url 'projects' %}"><b>All projects →</b></a></div>
+  <div class="pcards">
+    {% for p in recent %}{% include "_project_card.html" %}
+    {% empty %}<p class="muted">No projects have been published yet.</p>{% endfor %}
+  </div>
+</section>
+{% endblock %}

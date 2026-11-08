@@ -1,0 +1,27 @@
+{% extends "public_base.html" %}
+{% block title %}Projects{% endblock %}
+{% block content %}
+<h1>Projects</h1>
+
+<form method="get" class="toolbar" role="search">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  <div class="field grow">
+    <label for="q" class="sr">Search projects</label>
+    <input type="search" id="q" name="q" value="{{ q }}" placeholder="Search by project, owner or organisation…">
+  </div>
+  <button class="btn btn-dark" type="submit">Search</button>
+</form>
+
+<nav class="chips" aria-label="Filter by status">
+  {% for c in chips %}
+    <a class="chip{% if c.key == status %} on{% endif %}"
+       href="?status={{ c.key }}{% if q %}&q={{ q|urlencode }}{% endif %}"
+       {% if c.key == status %}aria-current="true"{% endif %}>{{ c.label }} {{ c.count }}</a>
+  {% endfor %}
+</nav>
+
+<div class="pcards">
+  {% for p in projects %}{% include "_project_card.html" %}
+  {% empty %}<p class="muted">No projects match.</p>{% endfor %}
+</div>
+{% endblock %}

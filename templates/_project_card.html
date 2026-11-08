@@ -1,0 +1,15 @@
+<a class="card pcard" href="{% url 'project' p.pk %}">
+  <div class="pcard-top">
+    <span class="tag">{{ p.organisation.get_kind_display }}</span>
+    <span class="badge st-{{ p.status }}">{{ p.get_status_display }}</span>
+  </div>
+  <h3>{{ p.name }}</h3>
+  <div class="muted">{{ p.get_kind_display }} · {{ p.organisation.public_name|default:p.organisation.name }}</div>
+  <div class="progress">
+    <div class="bar"><i style="width: {{ p.progress }}%"></i></div>
+    <span class="mono">{{ p.progress }}%</span>
+  </div>
+  <div class="muted">
+    {% if p.last_verified %}Last verified on site · {{ p.last_verified|timesince }} ago{% else %}Not yet verified on site{% endif %}
+  </div>
+</a>

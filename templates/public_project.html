@@ -1,0 +1,56 @@
+{% extends "public_base.html" %}
+{% block title %}{{ site.name }}{% endblock %}
+{% block content %}
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'projects' %}">Projects</a> / {{ site.name }}</nav>
+
+<div>
+  <div class="tl-tags">
+    <span class="tag">{{ org.get_kind_display }}</span>
+    <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+  </div>
+  <h1>{{ site.name }}</h1>
+  <p class="muted" style="margin:8px 0 0">
+    {{ site.get_kind_display }} · {{ org.public_name|default:org.name }}
+    {% if site.last_verified %} · Last verified on site {{ site.last_verified|timesince }} ago{% endif %}
+  </p>
+</div>
+
+<div class="detailgrid">
+  <section class="card main" aria-label="Evidence record">
+    <h2>Evidence record</h2>
+    {% for e in evidence %}
+      <article class="tl">
+        <div class="mono muted">{{ e.created_at|date:"d M Y" }}</div>
+        <div>
+          <div class="tl-tags">
+            <span class="tag">{{ e.get_kind_display }}</span>
+            {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>{% endif %}
+            {% if e.amends_id %}<span class="vb vb-no">Amends an earlier entry</span>{% endif %}
+          </div>
+          <p>{{ e.body|linebreaksbr }}</p>
+          {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+          <div class="muted">Logged by the project team</div>
+        </div>
+      </article>
+    {% empty %}
+      <p class="muted">No evidence has been logged yet.</p>
+    {% endfor %}
+  </section>
+
+  <div class="side">
+    <section class="card" aria-label="Progress">
+      <h2>Progress</h2>
+      <div class="progress" style="margin: 14px 0">
+        <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+        <span class="mono">{{ site.progress }}%</span>
+      </div>
+      <div class="muted">Target date · <span class="mono">{{ site.target_date|date:"d M Y"|default:"not set" }}</span></div>
+      <div class="muted" style="margin-top:6px">Location · <span class="mono">{{ site.location.y|floatformat:4 }}, {{ site.location.x|floatformat:4 }}</span></div>
+    </section>
+    <section class="card" aria-label="About this record">
+      <h2>About this record</h2>
+      <p class="muted" style="margin:8px 0 0">Status comes from dated evidence logged by the project team. Private notes are never shown here.</p>
+    </section>
+  </div>
+</div>
+{% endblock %}

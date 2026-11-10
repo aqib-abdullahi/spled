@@ -428,10 +428,14 @@ AUDIT_GROUPS = {
     "publishing": ["site.published", "site.unpublished"],
     "review": ["review.approved", "review.rejected"],
     "corrections": ["evidence.amended"],
+    "team": [
+        "member.invited", "invite.revoked", "member.joined",
+        "member.role_changed", "member.removed",
+    ],
 }
 AUDIT_CHIPS = [
     ("", "All"), ("sites", "Sites"), ("publishing", "Publishing"),
-    ("review", "Review"), ("corrections", "Corrections"),
+    ("review", "Review"), ("corrections", "Corrections"), ("team", "Team"),
 ]
 
 

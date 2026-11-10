@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Invitation{% endblock %}
+{% block body %}
+<div class="split">
+  <div class="split-side">
+    <div class="brand">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+      Spled
+    </div>
+    <div>
+      <h2>Evidence,<br>not claims.</h2>
+      <p>A shared record of what is really happening on your sites, wherever you are.</p>
+    </div>
+    <div class="accent">spled</div>
+  </div>
+
+  <main class="split-main">
+    <div class="stack" style="max-width:400px;width:100%">
+      {% if state == 'expired' %}
+        <h1>This invitation has expired</h1>
+        <p class="muted">Ask an administrator of {{ org.name }} to send you a new one.</p>
+      {% elif state == 'revoked' %}
+        <h1>This invitation was cancelled</h1>
+        <p class="muted">Ask an administrator of {{ org.name }} to send you a new one.</p>
+      {% elif state == 'accepted' %}
+        <h1>This invitation has already been used</h1>
+        <p class="muted">If that was you, <a href="{% url 'signin' %}"><b>sign in</b></a>.</p>
+      {% elif wrong_account %}
+        <h1>Wrong account</h1>
+        <p>This invitation is for a different email address. You’re signed in as <b>{{ request.user.email }}</b>.</p>
+        <form method="post" action="{% url 'signout' %}">{% csrf_token %}<button class="btn btn-dark" type="submit">Sign out</button></form>
+        <p class="muted">Then open the invitation link again.</p>
+      {% elif signed_in_ok %}
+        <h1>Join {{ org.name }}</h1>
+        <p>You’ll join as <b>{{ inv.get_role_display }}</b>.</p>
+        <form method="post">{% csrf_token %}<button class="btn btn-primary" type="submit">Accept invitation</button></form>
+      {% elif signin_url %}
+        <h1>Join {{ org.name }}</h1>
+        <p>You already have a Spled account for <b>{{ inv.email }}</b>. Sign in to accept the invitation as <b>{{ inv.get_role_display }}</b>.</p>
+        <a class="btn btn-dark" href="{{ signin_url }}">Sign in to accept</a>
+      {% else %}
+        <h1>Join {{ org.name }}</h1>
+        <p>You’re joining as <b>{{ inv.email }}</b> with the role <b>{{ inv.get_role_display }}</b>.</p>
+        <form method="post" class="stack" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label for="{{ form.full_name.id_for_label }}">Full name</label>{{ form.full_name }}
+            {% for error in form.full_name.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+          </div>
+          <div class="field">
+            <label for="{{ form.password1.id_for_label }}">Create a password</label>{{ form.password1 }}
+            {% for error in form.password1.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+          </div>
+          <button class="btn btn-primary" type="submit">Accept and join</button>
+        </form>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

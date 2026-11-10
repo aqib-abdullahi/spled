@@ -30,3 +30,14 @@ urlpatterns = [
     path("app/review/<int:pk>/", views.review_decide, name="review_decide"),
     path("app/evidence/<int:pk>/amend/", views.evidence_amend, name="evidence_amend"),
 ]
+
+from . import team_views  # noqa: E402
+
+urlpatterns += [
+    path("app/team/", team_views.team_page, name="team"),
+    path("app/team/invite/", team_views.invite_create, name="invite_create"),
+    path("app/team/invite/<int:pk>/revoke/", team_views.invite_revoke, name="invite_revoke"),
+    path("app/team/members/<int:pk>/role/", team_views.member_role, name="member_role"),
+    path("app/team/members/<int:pk>/remove/", team_views.member_remove, name="member_remove"),
+    path("invite/<str:token>/", team_views.invite_accept, name="invite_accept"),
+]

@@ -173,3 +173,6 @@ if os.name == "nt":
     if os.path.exists(os.path.join(_bin, "geos_c.dll")):
         GEOS_LIBRARY_PATH = os.path.join(_bin, "geos_c.dll")
 PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "Spled <no-reply@spled.local>"

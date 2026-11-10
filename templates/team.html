@@ -1,0 +1,71 @@
+{% extends "app_base.html" %}
+{% block title %}Team{% endblock %}
+{% block content %}
+<div>
+  <h1>Team</h1>
+  <p class="muted" style="margin:6px 0 0">{{ org.name }} · {{ members|length }} member{{ members|length|pluralize }}</p>
+</div>
+
+<section class="card" aria-label="Invite someone">
+  <h2 style="font-size:20px;margin-bottom:12px">Invite someone</h2>
+  <form method="post" action="{% url 'invite_create' %}" class="formgrid" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="field">
+      <label for="{{ form.email.id_for_label }}">Email</label>{{ form.email }}
+      {% for error in form.email.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="field">
+      <label for="{{ form.role.id_for_label }}">Role</label>{{ form.role }}
+      {% for error in form.role.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="actions wide"><button class="btn btn-dark" type="submit">Send invitation</button></div>
+  </form>
+</section>
+
+<section class="card" aria-label="Members">
+  <h2 style="font-size:20px">Members</h2>
+  {% for m in members %}
+    <div class="memberrow">
+      <div>
+        <b>{{ m.user.full_name }}</b>{% if m.user_id == request.user.id %} <span class="tag">You</span>{% endif %}
+        <div class="muted">{{ m.user.email }}</div>
+      </div>
+      <form method="post" action="{% url 'member_role' m.pk %}" class="inline">
+        {% csrf_token %}
+        <label class="sr" for="role{{ m.pk }}">Role for {{ m.user.full_name }}</label>
+        <select id="role{{ m.pk }}" name="role">
+          {% for value, label in roles %}<option value="{{ value }}"{% if value == m.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-small" type="submit">Save</button>
+      </form>
+      <form method="post" action="{% url 'member_remove' m.pk %}" class="inline"
+            onsubmit="return confirm('Remove {{ m.user.full_name|escapejs }} from the team?');">
+        {% csrf_token %}
+        <button class="btn btn-small" type="submit">Remove</button>
+      </form>
+    </div>
+  {% endfor %}
+</section>
+
+{% if invites %}
+<section class="card" aria-label="Open invitations">
+  <h2 style="font-size:20px">Open invitations</h2>
+  {% for i in invites %}
+    <div class="memberrow">
+      <div>
+        <b>{{ i.email }}</b> <span class="tag">{{ i.get_role_display }}</span>
+        <div class="muted">
+          {% if i.is_expired %}Expired {{ i.expires_at|timesince }} ago{% else %}Expires in {{ i.expires_at|timeuntil }}{% endif %}
+        </div>
+      </div>
+      <span></span>
+      <form method="post" action="{% url 'invite_revoke' i.pk %}" class="inline">
+        {% csrf_token %}
+        <button class="btn btn-small" type="submit">Revoke</button>
+      </form>
+    </div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

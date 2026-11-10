@@ -24,6 +24,7 @@
         <b>{{ request.user.full_name }}</b>
         <div class="muted">{{ request.user.email }}</div>
       </div>
+      {% if nav_can_team %}<a href="{% url 'team' %}"><b>Team</b></a>{% endif %}
       {% if nav_can_audit %}<a href="{% url 'audit_log' %}"><b>Audit log</b></a>{% endif %}
       <form method="post" action="{% url 'signout' %}">
         {% csrf_token %}

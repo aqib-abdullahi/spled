@@ -24,6 +24,11 @@ class AuditEvent(models.Model):
         REVIEW_APPROVED = "review.approved", "Entry approved"
         REVIEW_REJECTED = "review.rejected", "Entry rejected"
         EVIDENCE_AMENDED = "evidence.amended", "Entry amended"
+        MEMBER_INVITED = "member.invited", "Person invited"
+        INVITE_REVOKED = "invite.revoked", "Invitation revoked"
+        MEMBER_JOINED = "member.joined", "Person joined"
+        MEMBER_ROLE_CHANGED = "member.role_changed", "Role changed"
+        MEMBER_REMOVED = "member.removed", "Person removed"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.PROTECT, related_name="audit_events"
@@ -56,6 +61,16 @@ class AuditEvent(models.Model):
             return d["comment"]
         if self.action == self.Action.EVIDENCE_AMENDED and d.get("reason"):
             return "Reason: " + d["reason"]
+        if self.action == self.Action.MEMBER_INVITED:
+            return f"{d.get('email', '')} as {d.get('role', '')}"
+        if self.action == self.Action.MEMBER_ROLE_CHANGED:
+            return f"{d.get('email', '')}: {d.get('from', '')} to {d.get('to', '')}"
+        if self.action == self.Action.MEMBER_REMOVED:
+            return f"{d.get('email', '')} ({d.get('role', '')})"
+        if self.action == self.Action.INVITE_REVOKED:
+            return d.get("email", "")
+        if self.action == self.Action.MEMBER_JOINED:
+            return f"Joined as {d.get('role', '')}"
         return ""
 
     def save(self, *args, **kwargs):

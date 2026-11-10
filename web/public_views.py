@@ -1,21 +1,22 @@
 from django.db.models import F, Max, Q
 from django.shortcuts import get_object_or_404, render
 
-from registry.access import public_sites
+from registry.access import COUNTED, public_sites
 from registry.models import EvidenceEntry, Site
 
 
 def _projects():
     return public_sites().select_related("organisation").annotate(
         last_verified=Max(
-            "evidence__created_at", filter=Q(evidence__verified_on_site=True)
+            "evidence__created_at",
+            filter=Q(evidence__verified_on_site=True) & COUNTED,
         )
     )
 
 
 def public_home(request):
     projects = _projects()
-    evidence = EvidenceEntry.objects.filter(site__in=public_sites())
+    evidence = EvidenceEntry.objects.filter(site__in=public_sites()).counted()
     return render(request, "public_home.html", {
         "recent": projects.order_by(
             F("last_verified").desc(nulls_last=True), "-updated_at"
@@ -60,5 +61,5 @@ def public_project(request, pk):
     return render(request, "public_project.html", {
         "site": site,
         "org": site.organisation,
-        "evidence": site.evidence.order_by("-created_at", "-id"),
+        "evidence": site.evidence.counted().order_by("-created_at", "-id"),
     })

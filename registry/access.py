@@ -1,6 +1,12 @@
+from django.db.models import Q
+
 from organisations.models import Organisation
 
 from .models import EvidenceEntry, Site
+
+# For queries that start from Site: only entries that count
+# (no review needed, or approved).
+COUNTED = Q(evidence__needs_review=False) | Q(evidence__review__decision="approved")
 
 
 def sites_for(user, include_archived=False):

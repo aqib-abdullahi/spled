@@ -22,4 +22,6 @@ urlpatterns = [
     path("app/sites/<int:pk>/", views.site_detail, name="site_detail"),
     path("app/sites/<int:pk>/evidence/new/", views.evidence_new, name="evidence_new"),
     path("app/sites/<int:pk>/publish/", views.site_publish, name="site_publish"),
+    path("app/review/", views.review_queue, name="review"),
+    path("app/review/<int:pk>/", views.review_decide, name="review_decide"),
 ]

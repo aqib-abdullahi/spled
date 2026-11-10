@@ -9,9 +9,11 @@
   {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
 
   <div class="field"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label>{{ form.kind }}</div>
+  {% if allow_status %}
   <div class="field"><label for="{{ form.new_status.id_for_label }}">{{ form.new_status.label }}</label>{{ form.new_status }}
     {% for error in form.new_status.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
   </div>
+  {% endif %}
 
   <div class="field wide"><label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>{{ form.body }}
     {% for error in form.body.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}

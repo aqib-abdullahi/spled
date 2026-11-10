@@ -19,7 +19,7 @@
 </div>
 
 {% if is_contractor %}
-  <div class="notice" role="status">Contractor entries need a review step before they count. That review isn’t available yet, so logging is switched off for your role.</div>
+  <div class="notice" role="status">Your entries are reviewed by an editor before they appear on the public record or count towards progress.</div>
 {% endif %}
 {% if not chain_ok %}
   <div class="alert" role="alert">The evidence record for this site fails its integrity check. Contact an administrator.</div>
@@ -38,8 +38,14 @@
             {% elif e.location %}<span class="vb vb-no">Not verified on site</span>
             {% else %}<span class="vb vb-none">No location</span>{% endif %}
             {% if e.amends_id %}<span class="vb vb-no">Amends an earlier entry</span>{% endif %}
+            {% if e.needs_review %}
+              {% if e.review.decision == 'approved' %}<span class="vb vb-yes">Approved</span>
+              {% elif e.review.decision == 'rejected' %}<span class="vb vb-bad">Rejected</span>
+              {% else %}<span class="vb vb-no">Pending review</span>{% endif %}
+            {% endif %}
           </div>
           <p>{{ e.body|linebreaksbr }}</p>
+          {% if e.review.decision == 'rejected' %}<p class="muted">Rejected by {{ e.review.reviewer.full_name }}: {{ e.review.comment }}</p>{% endif %}
           {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
           <div class="muted">{{ e.author.full_name }}{% if e.distance_to_site_m is not None %} · {{ e.distance_to_site_m|floatformat:0 }} m from the site pin{% endif %}</div>
         </div>

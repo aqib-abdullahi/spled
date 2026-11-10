@@ -4,24 +4,26 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from organisations.permissions import (
+    APPROVE_ENTRIES,
     EDIT_SITES,
     LOG_EVIDENCE,
     PUBLISH,
     can,
     needs_review,
 )
-from registry.access import sites_for
-from registry.models import EvidenceEntry, Site
+from registry.access import COUNTED, sites_for
+from registry.models import EvidenceEntry, EvidenceReview, Site
 
 from .context import get_current_membership
 from .forms import EvidenceForm, SiteForm
+
 
 def home(request):
     return redirect("overview" if request.user.is_authenticated else "signin")
@@ -41,7 +43,11 @@ def overview(request):
             counts[row["status"]] = row["n"]
 
         cutoff = timezone.now() - timedelta(days=org.stale_after_days)
-        sites = list(base.annotate(last_evidence=Max("evidence__created_at")).order_by("name"))
+        sites = list(
+            base.annotate(
+                last_evidence=Max("evidence__created_at", filter=COUNTED)
+            ).order_by("name")
+        )
         attention = 0
         for site in sites:
             quiet_since = site.last_evidence or site.created_at
@@ -97,7 +103,9 @@ def sites_list(request):
         "active": "sites",
         "membership": membership,
         "org": org,
-        "sites": qs.annotate(last_evidence=Max("evidence__created_at")).order_by("name"),
+        "sites": qs.annotate(
+            last_evidence=Max("evidence__created_at", filter=COUNTED)
+        ).order_by("name"),
         "chips": chips,
         "status": status,
         "q": q,
@@ -146,6 +154,7 @@ def site_edit(request, pk):
         "active": "sites", "form": form, "title": "Edit site", "org": org, "site": site,
     })
 
+
 class OnSiteRequired(Exception):
     pass
 
@@ -164,18 +173,18 @@ def site_detail(request, pk):
     org, site = _site_in_current_org(request, pk)
     if site is None:
         return redirect("overview")
-    contractor = needs_review(request.user, org)
     return render(request, "site_detail.html", {
         "active": "sites",
         "org": org,
         "site": site,
         "evidence": list(
-            site.evidence.select_related("author").order_by("-created_at", "-id")
+            site.evidence.select_related("author", "review", "review__reviewer")
+            .order_by("-created_at", "-id")
         ),
         "chain_ok": not EvidenceEntry.verify_chain(site),
         "can_edit": can(request.user, EDIT_SITES, org),
-        "can_log": can(request.user, LOG_EVIDENCE, org) and not contractor,
-        "is_contractor": contractor,
+        "can_log": can(request.user, LOG_EVIDENCE, org),
+        "is_contractor": needs_review(request.user, org),
         "can_publish_role": can(request.user, PUBLISH, org),
     })
 
@@ -187,16 +196,12 @@ def evidence_new(request, pk):
         return redirect("overview")
     if not can(request.user, LOG_EVIDENCE, org):
         raise PermissionDenied
-    if needs_review(request.user, org):
-        messages.info(
-            request, "Contractor entries need a review step, which isn’t available yet."
-        )
-        return redirect("site_detail", pk=site.pk)
+    contractor = needs_review(request.user, org)
 
-    form = EvidenceForm(request.POST or None, site=site)
+    form = EvidenceForm(request.POST or None, site=site, allow_status=not contractor)
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
-        new_status = d["new_status"]
+        new_status = d.get("new_status", "")
         point = (
             Point(d["longitude"], d["latitude"], srid=4326)
             if d["latitude"] is not None
@@ -211,6 +216,7 @@ def evidence_new(request, pk):
                     body=d["body"],
                     tags=d["tags"],
                     location=point,
+                    needs_review=contractor,
                 )
                 if new_status:
                     if org.require_onsite_for_status_changes and not entry.verified_on_site:
@@ -225,11 +231,14 @@ def evidence_new(request, pk):
                 "Add your location, or leave the status as it is.",
             )
         else:
-            messages.success(request, "Evidence added.")
+            messages.success(
+                request, "Submitted for review." if contractor else "Evidence added."
+            )
             return redirect("site_detail", pk=site.pk)
 
     return render(request, "evidence_form.html", {
         "active": "sites", "form": form, "site": site, "org": org,
+        "allow_status": not contractor, "is_contractor": contractor,
     })
 
 
@@ -260,3 +269,72 @@ def site_publish(request, pk):
             site.save(update_fields=["is_public", "updated_at"])
             messages.success(request, f"“{site.name}” is now public.")
     return redirect("site_detail", pk=site.pk)
+
+
+@login_required
+def review_queue(request):
+    membership = get_current_membership(request)
+    if not membership:
+        return redirect("overview")
+    org = membership.organisation
+    if not can(request.user, APPROVE_ENTRIES, org):
+        raise PermissionDenied
+
+    pending = (
+        EvidenceEntry.objects.filter(
+            site__organisation=org, needs_review=True, review__isnull=True
+        )
+        .select_related("site", "author")
+        .order_by("created_at", "id")
+    )
+    recent = (
+        EvidenceReview.objects.filter(entry__site__organisation=org)
+        .select_related("entry__site", "entry__author", "reviewer")
+        .order_by("-created_at")[:10]
+    )
+    return render(request, "review.html", {
+        "active": "review", "org": org, "pending": pending, "recent": recent,
+    })
+
+
+@login_required
+@require_POST
+def review_decide(request, pk):
+    membership = get_current_membership(request)
+    if not membership:
+        return redirect("overview")
+    org = membership.organisation
+    if not can(request.user, APPROVE_ENTRIES, org):
+        raise PermissionDenied
+
+    entry = get_object_or_404(
+        EvidenceEntry, pk=pk, site__organisation=org, needs_review=True
+    )
+    if hasattr(entry, "review"):
+        messages.info(request, "That entry has already been reviewed.")
+        return redirect("review")
+    if entry.author_id == request.user.id:
+        raise PermissionDenied
+
+    decision = request.POST.get("decision", "")
+    comment = request.POST.get("comment", "").strip()
+    if decision not in EvidenceReview.Decision.values:
+        messages.error(request, "Choose approve or reject.")
+        return redirect("review")
+    if decision == EvidenceReview.Decision.REJECTED and len(comment) < 3:
+        messages.error(request, "Say why you are rejecting it, so the contractor knows.")
+        return redirect("review")
+
+    try:
+        with transaction.atomic():
+            EvidenceReview.objects.create(
+                entry=entry, reviewer=request.user, decision=decision, comment=comment
+            )
+    except IntegrityError:
+        messages.info(request, "That entry has already been reviewed.")
+    else:
+        messages.success(
+            request,
+            "Approved. It now counts." if decision == "approved" else "Rejected.",
+        )
+    return redirect("review")

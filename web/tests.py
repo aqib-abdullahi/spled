@@ -298,11 +298,6 @@ class SiteDetailTests(TestCase):
         self.assertEqual(self.site.status, "planned")
         self.assertEqual(EvidenceEntry.objects.count(), 0)
 
-    def test_contractor_cannot_log_yet(self):
-        self.login("contractor")
-        self.assertEqual(self.client.get(self.new()).status_code, 302)
-        self.assertEqual(self.client.post(self.new(), self.data(**self.NEAR)).status_code, 302)
-        self.assertEqual(EvidenceEntry.objects.count(), 0)
 
     def test_editor_can_publish_when_verified(self):
         self.login("editor")

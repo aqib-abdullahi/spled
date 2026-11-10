@@ -2,13 +2,14 @@
 {% block body %}
 <header class="appbar">
   <a class="brand" href="{% url 'overview' %}">
-    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="3" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
     Spled
   </a>
 
   <nav class="mainnav" aria-label="Main">
     <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}>Overview</a>
     <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}>Sites</a>
+    {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}>Review{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</a>{% endif %}
     <span aria-disabled="true">Reports</span>
     <span aria-disabled="true">Settings</span>
   </nav>

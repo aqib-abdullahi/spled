@@ -103,6 +103,12 @@ def distance_m(a, b):
 
 
 class EvidenceQuerySet(models.QuerySet):
+    def counted(self):
+        # Entries that count: no review needed, or approved.
+        return self.filter(
+            models.Q(needs_review=False) | models.Q(review__decision="approved")
+        )
+
     def update(self, **kwargs):
         raise PermissionError("Evidence cannot be changed.")
 
@@ -146,6 +152,7 @@ class EvidenceEntry(models.Model):
     )
     amendment_reason = models.CharField(max_length=200, blank=True)
 
+    needs_review = models.BooleanField(default=False, editable=False)
     previous_hash = models.CharField(max_length=64, blank=True, editable=False)
     content_hash = models.CharField(max_length=64, editable=False)
 
@@ -157,6 +164,13 @@ class EvidenceEntry(models.Model):
 
     def __str__(self):
         return f"{self.get_kind_display()} on {self.site} ({self.created_at:%d %b %Y})"
+
+    @property
+    def review_state(self):
+        if not self.needs_review:
+            return "not_required"
+        review = getattr(self, "review", None)
+        return review.decision if review else "pending"
 
     def _compute_verification(self):
         if self.location is None:
@@ -187,6 +201,8 @@ class EvidenceEntry(models.Model):
             "reason": self.amendment_reason,
             "previous": self.previous_hash,
         }
+        if self.needs_review:
+            payload["needs_review"] = True
         text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -229,3 +245,35 @@ class EvidenceEntry(models.Model):
                 problems.append((entry.id, "content changed"))
             previous = entry.content_hash
         return problems
+
+class EvidenceReview(models.Model):
+    class Decision(models.TextChoices):
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    entry = models.OneToOneField(
+        EvidenceEntry, on_delete=models.PROTECT, related_name="review"
+    )
+    reviewer = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    decision = models.CharField(max_length=20, choices=Decision.choices)
+    comment = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_decision_display()}: {self.entry}"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise PermissionError("A review decision cannot be changed.")
+        if not self.entry.needs_review:
+            raise ValueError("This entry does not need a review.")
+        if self.entry.author_id == self.reviewer_id:
+            raise ValueError("You cannot review your own entry.")
+        if self.decision == self.Decision.REJECTED and not self.comment.strip():
+            raise ValueError("A rejection needs a reason.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise PermissionError("A review decision cannot be deleted.")

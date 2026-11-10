@@ -70,9 +70,11 @@ class EvidenceForm(forms.Form):
         choices=[("", "Keep the current status")] + list(Site.Status.choices),
     )
 
-    def __init__(self, *args, site, **kwargs):
+    def __init__(self, *args, site, allow_status=True, **kwargs):
         super().__init__(*args, **kwargs)
         self.site = site
+        if not allow_status:
+            del self.fields["new_status"]
 
     def clean_tags(self):
         tags = []

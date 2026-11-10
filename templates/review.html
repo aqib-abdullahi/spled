@@ -1,0 +1,57 @@
+{% extends "app_base.html" %}
+{% block title %}Review{% endblock %}
+{% block content %}
+<div>
+  <h1>Review</h1>
+  <p class="muted" style="margin:6px 0 0">Entries from contractors wait here. Approved entries join the record. Rejected ones stay hidden.</p>
+</div>
+
+{% for e in pending %}
+  <article class="card rcard">
+    <div class="tl-tags">
+      <span class="tag">{{ e.get_kind_display }}</span>
+      {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>
+      {% elif e.location %}<span class="vb vb-no">Not verified on site</span>
+      {% else %}<span class="vb vb-none">No location</span>{% endif %}
+    </div>
+    <div>
+      <b><a href="{% url 'site_detail' e.site.pk %}">{{ e.site.name }}</a></b>
+      <span class="muted">· {{ e.author.full_name }} · {{ e.created_at|timesince }} ago</span>
+    </div>
+    <p style="margin:0">{{ e.body|linebreaksbr }}</p>
+    {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+    {% if e.distance_to_site_m is not None %}<div class="muted">{{ e.distance_to_site_m|floatformat:0 }} m from the site pin</div>{% endif %}
+    <form method="post" action="{% url 'review_decide' e.pk %}">
+      {% csrf_token %}
+      <div class="field">
+        <label for="c{{ e.pk }}">Comment (needed to reject)</label>
+        <textarea id="c{{ e.pk }}" name="comment" rows="2"></textarea>
+      </div>
+      <div class="decision">
+        <button class="btn btn-dark" name="decision" value="approved" type="submit">Approve</button>
+        <button class="btn" name="decision" value="rejected" type="submit">Reject</button>
+      </div>
+    </form>
+  </article>
+{% empty %}
+  <div class="card"><p class="muted" style="margin:0">Nothing is waiting for review.</p></div>
+{% endfor %}
+
+{% if recent %}
+  <section class="card">
+    <h2 style="font-size:20px">Recent decisions</h2>
+    {% for r in recent %}
+      <div class="tl" style="grid-template-columns: 110px 1fr">
+        <div>
+          {% if r.decision == 'approved' %}<span class="vb vb-yes">Approved</span>{% else %}<span class="vb vb-bad">Rejected</span>{% endif %}
+        </div>
+        <div>
+          <b>{{ r.entry.site.name }}</b>
+          <div class="muted">{{ r.entry.author.full_name }}'s entry, reviewed by {{ r.reviewer.full_name }} {{ r.created_at|timesince }} ago</div>
+          {% if r.comment %}<div>{{ r.comment }}</div>{% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </section>
+{% endif %}
+{% endblock %}

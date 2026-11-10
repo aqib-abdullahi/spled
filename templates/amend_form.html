@@ -1,0 +1,33 @@
+{% extends "app_base.html" %}
+{% block title %}Amend an entry{% endblock %}
+{% block content %}
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> / Amend an entry</nav>
+<h1>Amend an entry</h1>
+
+<section class="card">
+  <div class="tl-tags">
+    <span class="tag">{{ entry.get_kind_display }}</span>
+    <span class="muted">{{ entry.created_at|date:"d M Y" }}</span>
+  </div>
+  <p style="margin:0 0 8px">{{ entry.body|linebreaksbr }}</p>
+  <p class="muted" style="margin:0">The original stays on the record. Your correction is added beside it, not over it.</p>
+</section>
+
+<form method="post" class="card formgrid" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="field wide">
+    <label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>{{ form.body }}
+    {% for error in form.body.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+  </div>
+  <div class="field wide">
+    <label for="{{ form.reason.id_for_label }}">{{ form.reason.label }}</label>{{ form.reason }}
+    <small class="muted">{{ form.reason.help_text }}</small>
+    {% for error in form.reason.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+  </div>
+  <div class="actions wide">
+    <button class="btn btn-dark" type="submit">Save correction</button>
+    <a class="btn" href="{% url 'site_detail' site.pk %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

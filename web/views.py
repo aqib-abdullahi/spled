@@ -4,25 +4,30 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Count, Max, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from audit.log import record
+from audit.models import AuditEvent
 from organisations.permissions import (
+    AMEND_ENTRY,
     APPROVE_ENTRIES,
     EDIT_SITES,
     LOG_EVIDENCE,
+    MANAGE_ORGANISATION,
     PUBLISH,
     can,
     needs_review,
 )
 from registry.access import COUNTED, sites_for
-from registry.models import EvidenceEntry, EvidenceReview, Site
+from registry.models import EvidenceEntry, EvidencePhoto, EvidenceReview, Site
 
 from .context import get_current_membership
-from .forms import EvidenceForm, SiteForm
+from .forms import AmendForm, EvidenceForm, SiteForm
 
 
 def home(request):
@@ -127,7 +132,9 @@ def site_create(request):
         site = form.save(commit=False)
         site.organisation = org
         site.created_by = request.user
-        site.save()
+        with transaction.atomic():
+            site.save()
+            record(request.user, org, AuditEvent.Action.SITE_CREATED, site.pk, site.name)
         messages.success(request, f"“{site.name}” was added.")
         return redirect("sites")
     return render(request, "site_form.html", {
@@ -147,7 +154,13 @@ def site_edit(request, pk):
 
     form = SiteForm(request.POST or None, instance=site)
     if request.method == "POST" and form.is_valid():
-        form.save()
+        changed = [str(form[n].label) for n in form.changed_data]
+        with transaction.atomic():
+            form.save()
+            record(
+                request.user, org, AuditEvent.Action.SITE_EDITED,
+                site.pk, site.name, fields=changed,
+            )
         messages.success(request, f"“{site.name}” was saved.")
         return redirect("sites")
     return render(request, "site_form.html", {
@@ -179,6 +192,7 @@ def site_detail(request, pk):
         "site": site,
         "evidence": list(
             site.evidence.select_related("author", "review", "review__reviewer")
+            .prefetch_related("photos", "amendments")
             .order_by("-created_at", "-id")
         ),
         "chain_ok": not EvidenceEntry.verify_chain(site),
@@ -186,6 +200,7 @@ def site_detail(request, pk):
         "can_log": can(request.user, LOG_EVIDENCE, org),
         "is_contractor": needs_review(request.user, org),
         "can_publish_role": can(request.user, PUBLISH, org),
+        "can_amend": can(request.user, AMEND_ENTRY, org),
     })
 
 
@@ -198,10 +213,13 @@ def evidence_new(request, pk):
         raise PermissionDenied
     contractor = needs_review(request.user, org)
 
-    form = EvidenceForm(request.POST or None, site=site, allow_status=not contractor)
+    form = EvidenceForm(
+        request.POST or None, request.FILES or None, site=site, allow_status=not contractor
+    )
     if request.method == "POST" and form.is_valid():
         d = form.cleaned_data
         new_status = d.get("new_status", "")
+        photos = d["photos"]
         point = (
             Point(d["longitude"], d["latitude"], srid=4326)
             if d["latitude"] is not None
@@ -217,6 +235,7 @@ def evidence_new(request, pk):
                     tags=d["tags"],
                     location=point,
                     needs_review=contractor,
+                    photo_hashes=[p.sha256 for p in photos],
                 )
                 if new_status:
                     if org.require_onsite_for_status_changes and not entry.verified_on_site:
@@ -224,6 +243,14 @@ def evidence_new(request, pk):
                     Site.objects.filter(pk=site.pk).update(
                         status=new_status, updated_at=timezone.now()
                     )
+                saved = []
+                try:
+                    for processed in photos:
+                        saved.append(EvidencePhoto.create_from(entry, processed))
+                except Exception:
+                    for done in saved:
+                        done.remove_files()
+                    raise
         except OnSiteRequired:
             form.add_error(
                 "new_status",
@@ -253,7 +280,9 @@ def site_publish(request, pk):
 
     if site.is_public:
         site.is_public = False
-        site.save(update_fields=["is_public", "updated_at"])
+        with transaction.atomic():
+            site.save(update_fields=["is_public", "updated_at"])
+            record(request.user, org, AuditEvent.Action.SITE_UNPUBLISHED, site.pk, site.name)
         messages.success(request, f"“{site.name}” is no longer public.")
     elif not org.is_verified:
         messages.error(
@@ -266,7 +295,9 @@ def site_publish(request, pk):
         except ValidationError as e:
             messages.error(request, " ".join(sum(e.message_dict.values(), [])))
         else:
-            site.save(update_fields=["is_public", "updated_at"])
+            with transaction.atomic():
+                site.save(update_fields=["is_public", "updated_at"])
+                record(request.user, org, AuditEvent.Action.SITE_PUBLISHED, site.pk, site.name)
             messages.success(request, f"“{site.name}” is now public.")
     return redirect("site_detail", pk=site.pk)
 
@@ -285,6 +316,7 @@ def review_queue(request):
             site__organisation=org, needs_review=True, review__isnull=True
         )
         .select_related("site", "author")
+        .prefetch_related("photos")
         .order_by("created_at", "id")
     )
     recent = (
@@ -330,6 +362,13 @@ def review_decide(request, pk):
             EvidenceReview.objects.create(
                 entry=entry, reviewer=request.user, decision=decision, comment=comment
             )
+            record(
+                request.user, org,
+                AuditEvent.Action.REVIEW_APPROVED
+                if decision == "approved"
+                else AuditEvent.Action.REVIEW_REJECTED,
+                entry.site_id, entry.site.name, entry_id=entry.pk, comment=comment,
+            )
     except IntegrityError:
         messages.info(request, "That entry has already been reviewed.")
     else:
@@ -338,3 +377,81 @@ def review_decide(request, pk):
             "Approved. It now counts." if decision == "approved" else "Rejected.",
         )
     return redirect("review")
+
+@login_required
+def evidence_amend(request, pk):
+    membership = get_current_membership(request)
+    if not membership:
+        return redirect("overview")
+    org = membership.organisation
+    if not can(request.user, AMEND_ENTRY, org):
+        raise PermissionDenied
+    entry = get_object_or_404(
+        EvidenceEntry.objects.counted().select_related("site"),
+        pk=pk,
+        site__organisation=org,
+        site__archived_at__isnull=True,
+    )
+
+    form = AmendForm(request.POST or None, initial={"body": entry.body})
+    if request.method == "POST" and form.is_valid():
+        d = form.cleaned_data
+        if d["body"].strip() == entry.body.strip():
+            form.add_error("body", "Change the text, or cancel.")
+        else:
+            with transaction.atomic():
+                fix = EvidenceEntry.objects.create(
+                    site=entry.site,
+                    author=request.user,
+                    kind=EvidenceEntry.Kind.NOTE,
+                    body=d["body"],
+                    amends=entry,
+                    amendment_reason=d["reason"],
+                )
+                record(
+                    request.user, org, AuditEvent.Action.EVIDENCE_AMENDED,
+                    entry.site_id, entry.site.name,
+                    entry_id=entry.pk, correction_id=fix.pk, reason=d["reason"],
+                )
+            messages.success(
+                request, "Correction added. The original stays on the record."
+            )
+            return redirect("site_detail", pk=entry.site_id)
+
+    return render(request, "amend_form.html", {
+        "active": "sites", "form": form, "entry": entry, "site": entry.site, "org": org,
+    })
+
+
+AUDIT_GROUPS = {
+    "sites": ["site.created", "site.edited"],
+    "publishing": ["site.published", "site.unpublished"],
+    "review": ["review.approved", "review.rejected"],
+    "corrections": ["evidence.amended"],
+}
+AUDIT_CHIPS = [
+    ("", "All"), ("sites", "Sites"), ("publishing", "Publishing"),
+    ("review", "Review"), ("corrections", "Corrections"),
+]
+
+
+@login_required
+def audit_log(request):
+    membership = get_current_membership(request)
+    if not membership:
+        return redirect("overview")
+    org = membership.organisation
+    if not can(request.user, MANAGE_ORGANISATION, org):
+        raise PermissionDenied
+
+    group = request.GET.get("group", "")
+    qs = AuditEvent.objects.filter(organisation=org)
+    if group in AUDIT_GROUPS:
+        qs = qs.filter(action__in=AUDIT_GROUPS[group])
+    else:
+        group = ""
+    page = Paginator(qs, 50).get_page(request.GET.get("page"))
+    return render(request, "audit.html", {
+        "active": "audit", "org": org, "page": page, "group": group,
+        "chips": [{"key": k, "label": label} for k, label in AUDIT_CHIPS],
+    })

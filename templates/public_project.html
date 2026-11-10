@@ -25,9 +25,12 @@
           <div class="tl-tags">
             <span class="tag">{{ e.get_kind_display }}</span>
             {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>{% endif %}
-            {% if e.amends_id %}<span class="vb vb-no">Amends an earlier entry</span>{% endif %}
+            {% if e.amends_id %}<span class="vb vb-no">Correction</span>{% endif %}
+            {% if e.amendments.all %}<span class="vb vb-no">Amended</span>{% endif %}
           </div>
           <p>{{ e.body|linebreaksbr }}</p>
+          {% if e.amends_id %}<p class="muted">Correction. Reason: {{ e.amendment_reason }}</p>{% endif %}
+          {% include "_photos.html" %}
           {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
           <div class="muted">Logged by the project team</div>
         </div>

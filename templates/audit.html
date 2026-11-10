@@ -1,0 +1,39 @@
+{% extends "app_base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+<div>
+  <h1>Audit log</h1>
+  <p class="muted" style="margin:6px 0 0">{{ org.name }} · what people did in Spled. Entries can’t be edited or removed.</p>
+</div>
+
+<nav class="chips" aria-label="Filter">
+  {% for c in chips %}
+    <a class="chip{% if c.key == group %} on{% endif %}" href="?group={{ c.key }}"
+       {% if c.key == group %}aria-current="true"{% endif %}>{{ c.label }}</a>
+  {% endfor %}
+</nav>
+
+<section class="card" aria-label="Events">
+  {% for e in page %}
+    <div class="auditrow">
+      <div class="muted">{{ e.created_at|date:"d M Y" }}, {{ e.created_at|time:"H:i" }}</div>
+      <div><span class="tag">{{ e.get_action_display }}</span></div>
+      <div>
+        <b>{% if e.target_id %}<a href="{% url 'site_detail' e.target_id %}">{{ e.target_label }}</a>{% else %}{{ e.target_label }}{% endif %}</b>
+        <div class="muted">{{ e.actor_label }}</div>
+        {% if e.summary %}<div>{{ e.summary }}</div>{% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p class="muted">Nothing recorded yet.</p>
+  {% endfor %}
+</section>
+
+{% if page.has_other_pages %}
+  <nav class="pager" aria-label="Pages">
+    {% if page.has_previous %}<a class="btn btn-small" href="?group={{ group }}&page={{ page.previous_page_number }}">Newer</a>{% endif %}
+    <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a class="btn btn-small" href="?group={{ group }}&page={{ page.next_page_number }}">Older</a>{% endif %}
+  </nav>
+{% endif %}
+{% endblock %}

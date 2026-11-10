@@ -19,7 +19,8 @@
       <span class="muted">· {{ e.author.full_name }} · {{ e.created_at|timesince }} ago</span>
     </div>
     <p style="margin:0">{{ e.body|linebreaksbr }}</p>
-    {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+    {% include "_photos.html" %}
+          {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
     {% if e.distance_to_site_m is not None %}<div class="muted">{{ e.distance_to_site_m|floatformat:0 }} m from the site pin</div>{% endif %}
     <form method="post" action="{% url 'review_decide' e.pk %}">
       {% csrf_token %}

@@ -1,0 +1,9 @@
+{% if e.photos.all %}
+<div class="thumbs">
+  {% for p in e.photos.all %}
+    <a href="{% url 'photo' p.pk 'display' %}" target="_blank" rel="noopener">
+      <img src="{% url 'photo' p.pk 'thumb' %}" alt="Photo {{ forloop.counter }} attached to this entry" loading="lazy">
+    </a>
+  {% endfor %}
+</div>
+{% endif %}

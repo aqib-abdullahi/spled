@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'organisations',
     'registry',
     'web',
+    'audit',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -171,3 +172,4 @@ if os.name == "nt":
         GDAL_LIBRARY_PATH = _gdal[-1]
     if os.path.exists(os.path.join(_bin, "geos_c.dll")):
         GEOS_LIBRARY_PATH = os.path.join(_bin, "geos_c.dll")
+PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"

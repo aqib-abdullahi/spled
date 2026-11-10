@@ -12,7 +12,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
+from django.core.files.base import ContentFile
 from organisations.models import Organisation
+
+from .photos import photo_upload_path, private_storage
 
 
 class Site(models.Model):
@@ -153,6 +156,9 @@ class EvidenceEntry(models.Model):
     amendment_reason = models.CharField(max_length=200, blank=True)
 
     needs_review = models.BooleanField(default=False, editable=False)
+    photo_hashes = ArrayField(
+        models.CharField(max_length=64), default=list, blank=True, editable=False
+    )
     previous_hash = models.CharField(max_length=64, blank=True, editable=False)
     content_hash = models.CharField(max_length=64, editable=False)
 
@@ -203,6 +209,8 @@ class EvidenceEntry(models.Model):
         }
         if self.needs_review:
             payload["needs_review"] = True
+        if self.photo_hashes:
+            payload["photos"] = list(self.photo_hashes)
         text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -243,7 +251,27 @@ class EvidenceEntry(models.Model):
                 problems.append((entry.id, "chain broken"))
             if entry.content_hash != entry.compute_hash():
                 problems.append((entry.id, "content changed"))
+            if entry.photo_hashes:
+                stored = sorted(entry.photos.values_list("sha256", flat=True))
+                if stored != sorted(entry.photo_hashes):
+                    problems.append((entry.id, "photos changed"))
             previous = entry.content_hash
+        return problems
+
+    @classmethod
+    def verify_files(cls, site):
+        """Re-read every photo file and compare it with its stored fingerprint."""
+        problems = []
+        for entry in cls.objects.filter(site=site).prefetch_related("photos"):
+            for photo in entry.photos.all():
+                try:
+                    with photo.original.open("rb") as handle:
+                        digest = hashlib.sha256(handle.read()).hexdigest()
+                except OSError:
+                    problems.append((entry.id, f"photo {photo.id} file missing"))
+                    continue
+                if digest != photo.sha256:
+                    problems.append((entry.id, f"photo {photo.id} file changed"))
         return problems
 
 class EvidenceReview(models.Model):
@@ -277,3 +305,76 @@ class EvidenceReview(models.Model):
 
     def delete(self, *args, **kwargs):
         raise PermissionError("A review decision cannot be deleted.")
+
+
+class PhotoQuerySet(models.QuerySet):
+    def update(self, **kwargs):
+        raise PermissionError("Photos cannot be changed.")
+
+    def bulk_update(self, *args, **kwargs):
+        raise PermissionError("Photos cannot be changed.")
+
+    def delete(self):
+        raise PermissionError("Photos cannot be deleted.")
+
+
+class EvidencePhoto(models.Model):
+    entry = models.ForeignKey(
+        EvidenceEntry, on_delete=models.PROTECT, related_name="photos"
+    )
+    original = models.FileField(
+        storage=private_storage, upload_to=photo_upload_path, max_length=200
+    )
+    display = models.FileField(
+        storage=private_storage, upload_to=photo_upload_path, max_length=200
+    )
+    thumb = models.FileField(
+        storage=private_storage, upload_to=photo_upload_path, max_length=200
+    )
+    sha256 = models.CharField(max_length=64, editable=False)
+    width = models.PositiveIntegerField(editable=False)
+    height = models.PositiveIntegerField(editable=False)
+    size_bytes = models.PositiveIntegerField(editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = PhotoQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"Photo {self.pk} on entry {self.entry_id}"
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise PermissionError("Photos cannot be changed.")
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise PermissionError("Photos cannot be deleted.")
+
+    def remove_files(self):
+        for field in (self.original, self.display, self.thumb):
+            if field and field.name:
+                field.storage.delete(field.name)
+
+    @classmethod
+    def create_from(cls, entry, processed):
+        photo = cls(
+            entry=entry,
+            sha256=processed.sha256,
+            width=processed.width,
+            height=processed.height,
+            size_bytes=len(processed.original),
+        )
+        try:
+            photo.original.save(
+                f"original.{processed.ext}", ContentFile(processed.original), save=False
+            )
+            photo.display.save("display.jpg", ContentFile(processed.display), save=False)
+            photo.thumb.save("thumb.jpg", ContentFile(processed.thumb), save=False)
+            photo.save()
+        except Exception:
+            photo.remove_files()
+            raise
+        return photo

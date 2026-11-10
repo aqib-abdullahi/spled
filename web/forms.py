@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.gis.geos import Point
 
 from registry.models import EvidenceEntry, Site
+from registry.photos import MAX_PHOTOS, PhotoError, process_image
 
 
 class SiteForm(forms.ModelForm):
@@ -49,11 +50,30 @@ class SiteForm(forms.ModelForm):
             site.save()
         return site
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single(d, initial) for d in data]
+        else:
+            result = [single(data, initial)]
+        return [f for f in result if f]
+
+
 class EvidenceForm(forms.Form):
     kind = forms.ChoiceField(
         choices=[
             (EvidenceEntry.Kind.NOTE, "Note"),
             (EvidenceEntry.Kind.CHECK_IN, "Field check-in"),
+            (EvidenceEntry.Kind.PHOTO, "Photo"),
         ]
     )
     body = forms.CharField(
@@ -69,6 +89,24 @@ class EvidenceForm(forms.Form):
         label="Also update the site’s status",
         choices=[("", "Keep the current status")] + list(Site.Status.choices),
     )
+
+    photos = MultipleFileField(
+        required=False,
+        label="Photos",
+        widget=MultipleFileInput(attrs={"accept": "image/jpeg,image/png,image/webp"}),
+    )
+
+    def clean_photos(self):
+        files = self.cleaned_data.get("photos") or []
+        if len(files) > MAX_PHOTOS:
+            raise forms.ValidationError(f"Add at most {MAX_PHOTOS} photos at a time.")
+        processed = []
+        for f in files:
+            try:
+                processed.append(process_image(f))
+            except PhotoError as e:
+                raise forms.ValidationError(f"{f.name}: {e}")
+        return processed
 
     def __init__(self, *args, site, allow_status=True, **kwargs):
         super().__init__(*args, **kwargs)
@@ -95,6 +133,22 @@ class EvidenceForm(forms.Form):
             )
         if data.get("kind") == EvidenceEntry.Kind.CHECK_IN and lat is None:
             raise forms.ValidationError("A field check-in needs a location.")
+        if (
+            data.get("kind") == EvidenceEntry.Kind.PHOTO
+            and not data.get("photos")
+            and "photos" not in self.errors
+        ):
+            raise forms.ValidationError("A photo entry needs at least one photo.")
         if data.get("new_status") == self.site.status:
             data["new_status"] = ""
         return data
+
+class AmendForm(forms.Form):
+    body = forms.CharField(
+        label="Corrected text", widget=forms.Textarea(attrs={"rows": 4})
+    )
+    reason = forms.CharField(
+        label="Reason for the correction",
+        max_length=200,
+        help_text="This is shown next to the correction.",
+    )

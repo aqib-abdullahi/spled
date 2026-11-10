@@ -61,5 +61,7 @@ def public_project(request, pk):
     return render(request, "public_project.html", {
         "site": site,
         "org": site.organisation,
-        "evidence": site.evidence.counted().order_by("-created_at", "-id"),
+        "evidence": site.evidence.counted()
+        .prefetch_related("photos", "amendments")
+        .order_by("-created_at", "-id"),
     })

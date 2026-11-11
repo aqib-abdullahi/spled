@@ -45,6 +45,7 @@ class Site(models.Model):
     owner_name = models.CharField(max_length=200, blank=True)
     target_date = models.DateField(null=True, blank=True)
     progress = models.PositiveSmallIntegerField(default=0)
+    progress_from_milestones = models.BooleanField(default=False)
     description = models.TextField(blank=True)
 
     location = gis.PointField(srid=4326)
@@ -378,3 +379,30 @@ class EvidencePhoto(models.Model):
             photo.remove_files()
             raise
         return photo
+
+
+class Milestone(models.Model):
+    site = models.ForeignKey(Site, on_delete=models.CASCADE, related_name="milestones")
+    title = models.CharField(max_length=120)
+    due_date = models.DateField(null=True, blank=True)
+    position = models.PositiveIntegerField(default=0)
+    completed_at = models.DateTimeField(null=True, blank=True, editable=False)
+    completed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        editable=False,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "id"]
+
+    def __str__(self):
+        return f"{self.title} ({self.site})"
+
+    @property
+    def is_done(self):
+        return self.completed_at is not None

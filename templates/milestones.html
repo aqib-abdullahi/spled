@@ -1,0 +1,89 @@
+{% extends "app_base.html" %}
+{% block title %}Milestones{% endblock %}
+{% block content %}
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> / Milestones</nav>
+<div>
+  <h1>Milestones</h1>
+  <p class="muted" style="margin:6px 0 0">{{ done }} of {{ total }} done{% if site.progress_from_milestones %} · progress follows milestones ({{ site.progress }}%){% endif %}</p>
+</div>
+
+{% if can_edit %}
+<section class="card" aria-label="Progress setting">
+  <form method="post" action="{% url 'milestone_settings' site.pk %}" class="inline">
+    {% csrf_token %}
+    <label class="checkrow">
+      <input type="checkbox" name="progress_from_milestones" value="on"{% if site.progress_from_milestones %} checked{% endif %}>
+      Calculate progress from milestones
+    </label>
+    <button class="btn btn-small" type="submit">Save</button>
+  </form>
+  <small class="muted">When on, a site’s progress is the share of milestones that are done.</small>
+</section>
+{% endif %}
+
+<section class="card" aria-label="Milestones">
+  {% for m in milestones %}
+    <div class="msrow">
+      <div class="msmain">
+        {% if m.is_done %}<span class="vb vb-yes">✓ Done {{ m.completed_at|date:"d M Y" }}</span>{% else %}<span class="vb vb-none">Open</span>{% endif %}
+        <b class="mstitle">{{ m.title }}</b>
+        <span class="muted">{% if m.due_date %}Due {{ m.due_date|date:"d M Y" }}{% else %}No due date{% endif %}</span>
+      </div>
+      {% if can_edit %}
+      <div class="msactions">
+        <form method="post" action="{% url 'milestone_toggle' site.pk m.pk %}">{% csrf_token %}
+          <button class="btn btn-small" type="submit">{% if m.is_done %}Reopen{% else %}Mark done{% endif %}</button>
+        </form>
+        <form method="post" action="{% url 'milestone_move' site.pk m.pk %}">{% csrf_token %}
+          <button class="btn btn-small" name="direction" value="up" type="submit" aria-label="Move {{ m.title }} up"{% if forloop.first %} disabled{% endif %}>↑</button>
+        </form>
+        <form method="post" action="{% url 'milestone_move' site.pk m.pk %}">{% csrf_token %}
+          <button class="btn btn-small" name="direction" value="down" type="submit" aria-label="Move {{ m.title }} down"{% if forloop.last %} disabled{% endif %}>↓</button>
+        </form>
+        {% if not m.is_done %}
+        <form method="post" action="{% url 'milestone_delete' site.pk m.pk %}" onsubmit="return confirm('Delete this milestone?');">{% csrf_token %}
+          <button class="btn btn-small" type="submit">Delete</button>
+        </form>
+        {% endif %}
+      </div>
+      <details class="msedit">
+        <summary>Edit</summary>
+        <form method="post" action="{% url 'milestone_edit' site.pk m.pk %}" class="formgrid" novalidate>
+          {% csrf_token %}
+          <div class="field">
+            <label for="t{{ m.pk }}">Title</label>
+            <input id="t{{ m.pk }}" name="title" value="{{ m.title }}" maxlength="120" required>
+          </div>
+          <div class="field">
+            <label for="d{{ m.pk }}">Due date</label>
+            <input id="d{{ m.pk }}" name="due_date" type="date" value="{{ m.due_date|date:'Y-m-d' }}">
+          </div>
+          <div class="actions wide"><button class="btn btn-dark" type="submit">Save changes</button></div>
+        </form>
+      </details>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="muted">No milestones yet.</p>
+  {% endfor %}
+</section>
+
+{% if can_edit %}
+<section class="card" aria-label="Add a milestone">
+  <h2 style="font-size:20px;margin-bottom:12px">Add a milestone</h2>
+  <form method="post" action="{% url 'milestone_add' site.pk %}" class="formgrid" novalidate>
+    {% csrf_token %}
+    <div class="field">
+      <label for="new-title">Title</label>
+      <input id="new-title" name="title" maxlength="120" required>
+    </div>
+    <div class="field">
+      <label for="new-due">Due date (optional)</label>
+      <input id="new-due" name="due_date" type="date">
+    </div>
+    <div class="actions wide"><button class="btn btn-primary" type="submit">Add milestone</button></div>
+  </form>
+  <small class="muted">Up to {{ max_milestones }} milestones per site.</small>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,13 @@
+<section class="card" aria-label="Milestones">
+  <h2>Milestones</h2>
+  {% for m in site.milestones.all %}
+    <div class="mrow">
+      {% if m.is_done %}<span class="vb vb-yes">✓</span>{% else %}<span class="vb vb-none">·</span>{% endif %}
+      <span>{{ m.title }}</span>
+      <span class="muted">{% if m.is_done %}{{ m.completed_at|date:"d M" }}{% elif m.due_date %}Due {{ m.due_date|date:"d M" }}{% endif %}</span>
+    </div>
+  {% empty %}
+    <p class="muted" style="margin:8px 0">No milestones yet.</p>
+  {% endfor %}
+  <p style="margin:12px 0 0"><a href="{% url 'milestones' site.pk %}"><b>{% if can_edit %}Manage milestones{% else %}View milestones{% endif %}</b></a></p>
+</section>

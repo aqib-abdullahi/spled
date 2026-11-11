@@ -50,6 +50,18 @@
       <div class="muted">Target date · <span class="mono">{{ site.target_date|date:"d M Y"|default:"not set" }}</span></div>
       <div class="muted" style="margin-top:6px">Location · <span class="mono">{{ site.location.y|floatformat:4 }}, {{ site.location.x|floatformat:4 }}</span></div>
     </section>
+    {% if site.milestones.all %}
+    <section class="card" aria-label="Milestones">
+      <h2>Milestones</h2>
+      {% for m in site.milestones.all %}
+        <div class="mrow">
+          {% if m.is_done %}<span class="vb vb-yes">✓</span>{% else %}<span class="vb vb-none">·</span>{% endif %}
+          <span>{{ m.title }}</span>
+          <span class="muted">{% if m.is_done %}{{ m.completed_at|date:"d M Y" }}{% elif m.due_date %}Due {{ m.due_date|date:"d M Y" }}{% endif %}</span>
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
     <section class="card" aria-label="About this record">
       <h2>About this record</h2>
       <p class="muted" style="margin:8px 0 0">Status comes from dated evidence logged by the project team. Private notes are never shown here.</p>

@@ -570,3 +570,15 @@ html { -webkit-text-size-adjust: 100%; }
   .memberrow { grid-template-columns: 1fr; }
   .inline select { flex: 1; }
 }
+
+/* ---------- Milestones ---------- */
+.msrow { padding: 14px 0; border-top: 1px solid #e6eee9; display: grid; gap: 10px; }
+.msmain { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.mstitle { font-weight: 600; }
+.msactions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.msactions form { margin: 0; }
+.msedit summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+.mrow { display: flex; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid #e6eee9; }
+.mrow .muted { margin-left: auto; font-size: 13px; }
+.checkrow { display: flex; gap: 10px; align-items: center; }
+.checkrow input { width: 20px; height: 20px; }

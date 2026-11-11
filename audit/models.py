@@ -29,6 +29,11 @@ class AuditEvent(models.Model):
         MEMBER_JOINED = "member.joined", "Person joined"
         MEMBER_ROLE_CHANGED = "member.role_changed", "Role changed"
         MEMBER_REMOVED = "member.removed", "Person removed"
+        MILESTONE_ADDED = "milestone.added", "Milestone added"
+        MILESTONE_COMPLETED = "milestone.completed", "Milestone completed"
+        MILESTONE_REOPENED = "milestone.reopened", "Milestone reopened"
+        MILESTONE_EDITED = "milestone.edited", "Milestone edited"
+        MILESTONE_DELETED = "milestone.deleted", "Milestone deleted"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.PROTECT, related_name="audit_events"

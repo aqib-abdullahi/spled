@@ -82,3 +82,15 @@ urlpatterns += [
         name="password_reset_complete",
     ),
 ]
+
+from . import milestone_views  # noqa: E402
+
+urlpatterns += [
+    path("app/sites/<int:pk>/milestones/", milestone_views.milestones_page, name="milestones"),
+    path("app/sites/<int:pk>/milestones/add/", milestone_views.milestone_add, name="milestone_add"),
+    path("app/sites/<int:pk>/milestones/settings/", milestone_views.milestone_settings, name="milestone_settings"),
+    path("app/sites/<int:pk>/milestones/<int:mpk>/toggle/", milestone_views.milestone_toggle, name="milestone_toggle"),
+    path("app/sites/<int:pk>/milestones/<int:mpk>/edit/", milestone_views.milestone_edit, name="milestone_edit"),
+    path("app/sites/<int:pk>/milestones/<int:mpk>/move/", milestone_views.milestone_move, name="milestone_move"),
+    path("app/sites/<int:pk>/milestones/<int:mpk>/delete/", milestone_views.milestone_delete, name="milestone_delete"),
+]

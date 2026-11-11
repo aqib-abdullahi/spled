@@ -70,6 +70,8 @@
       <div class="muted" style="margin-top:6px">Record · {{ evidence|length }} entr{{ evidence|length|pluralize:"y,ies" }}{% if chain_ok %}, chain intact{% endif %}</div>
     </section>
 
+    {% include "_milestones_card.html" %}
+
     <section class="card" aria-label="Visibility">
       <h2>Visibility</h2>
       {% if site.is_public %}

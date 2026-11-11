@@ -63,7 +63,7 @@
     <section class="card" aria-label="Progress">
       <h2>Progress</h2>
       <div class="progress" style="margin: 14px 0">
-        <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+        <div class="bar"><i class="st-{{ site.status }}" style="width: {{ site.progress }}%"></i></div>
         <span class="mono">{{ site.progress }}%</span>
       </div>
       <div class="muted">Target date · <span class="mono">{{ site.target_date|date:"d M Y"|default:"not set" }}</span></div>

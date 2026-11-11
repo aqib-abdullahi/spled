@@ -6,7 +6,7 @@
   <h3>{{ p.name }}</h3>
   <div class="muted">{{ p.get_kind_display }} · {{ p.organisation.public_name|default:p.organisation.name }}</div>
   <div class="progress">
-    <div class="bar"><i style="width: {{ p.progress }}%"></i></div>
+    <div class="bar"><i class="st-{{ p.status }}" style="width: {{ p.progress }}%"></i></div>
     <span class="mono">{{ p.progress }}%</span>
   </div>
   <div class="muted">

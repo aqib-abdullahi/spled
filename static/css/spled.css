@@ -54,7 +54,8 @@ body {
 h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.02em; }
 a { color: inherit; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-.mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+/* .mono { font-family: "JetBrains Mono", ui-monospace, monospace; } */
+.mono { font-family: "Google Sans Flex", sans-serif; }
 .muted { color: var(--muted); }
 
 /* Buttons */
@@ -582,3 +583,16 @@ html { -webkit-text-size-adjust: 100%; }
 .mrow .muted { margin-left: auto; font-size: 13px; }
 .checkrow { display: flex; gap: 10px; align-items: center; }
 .checkrow input { width: 20px; height: 20px; }
+
+
+/* ---------- Progress bars follow status ---------- */
+.bar i { transition: width 0.3s ease; }
+.bar i.st-planned { background: var(--st-planned); }
+.bar i.st-in_progress { background: var(--st-in_progress); }
+.bar i.st-delayed { background: var(--st-delayed); }
+.bar i.st-stalled { background: var(--st-stalled); }
+.bar i.st-complete { background: var(--st-complete); }
+
+@media (prefers-reduced-motion: reduce) {
+  .bar i { transition: none; }
+}

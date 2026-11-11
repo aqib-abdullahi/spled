@@ -53,7 +53,7 @@
             </div>
             <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
             <div class="progress">
-              <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+              <div class="bar"><i class="st-{{ site.status }}" style="width: {{ site.progress }}%"></i></div>
               <span class="mono">{{ site.progress }}%</span>
             </div>
             <span class="mono muted site-date">{{ site.target_date|date:"d M Y"|default:"No target" }}</span>

@@ -8,53 +8,93 @@
     <p class="muted" style="margin:6px 0 0">Ask an administrator to invite you, or create one from the admin.</p>
   </div>
 {% else %}
-  <div>
-    <h1>Overview</h1>
-    <p class="muted" style="margin:6px 0 0">{{ org.name }} · {{ total }} site{{ total|pluralize }}</p>
+  <div class="overview-grid">
+    <div class="overview-main">
+      <header class="overview-hero" aria-label="Workspace overview">
+        <div class="kicker">Workspace</div>
+        <div class="overview-head">
+          <div>
+            <h1>Overview</h1>
+            <p>{{ org.name }} · {{ total }} site{{ total|pluralize }}</p>
+          </div>
+          <div class="overview-pill {% if org.is_verified %}verified{% else %}pending{% endif %}">
+            {% if org.is_verified %}Verified workspace{% else %}Verification pending{% endif %}
+          </div>
+        </div>
+      </header>
+
+      {% if not org.is_verified %}
+        <div class="notice" role="status">
+          <b>Pending verification.</b> You can set up sites privately now. Publishing to the public portal unlocks once your organisation is verified.
+        </div>
+      {% endif %}
+
+      <section class="stats" aria-label="Status summary">
+        {% for s in status_counts %}
+          <div class="stat">
+            <div class="stat-label"><span class="dot st-{{ s.key }}"></span>{{ s.label }}</div>
+            <div class="stat-num">{{ s.count }}</div>
+          </div>
+        {% endfor %}
+        <div class="stat attention">
+          <div class="stat-label">Needs attention</div>
+          <div class="stat-num">{{ attention_count }}</div>
+          <div class="stat-note">delayed, stalled, or no evidence for {{ stale_days }}+ days</div>
+        </div>
+      </section>
+
+      <section class="card sitelist" aria-label="Sites">
+        <h2>Sites</h2>
+        {% for site in sites %}
+          <div class="siterow">
+            <div class="site-name">
+              <b><a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a></b>
+              <div class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</div>
+            </div>
+            <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+            <div class="progress">
+              <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
+              <span class="mono">{{ site.progress }}%</span>
+            </div>
+            <span class="mono muted site-date">{{ site.target_date|date:"d M Y"|default:"No target" }}</span>
+            <span class="muted site-evidence">
+              {% if site.last_evidence %}{{ site.last_evidence|timesince }} ago{% else %}No evidence yet{% endif %}
+            </span>
+            {% if site.needs_attention %}<span class="tag-attention">Needs attention</span>{% endif %}
+          </div>
+        {% empty %}
+          <p class="muted">No sites yet. Add the first one from the admin for now.</p>
+        {% endfor %}
+      </section>
+    </div>
+
+    <aside class="overview-aside">
+      <div class="card sidebar-card">
+        <div class="sidebar-label">Quick actions</div>
+        <div class="quick-actions">
+          <a class="action-pill" href="{% url 'sites' %}"><span>Open site list</span><strong>→</strong></a>
+          {% if nav_can_review %}<a class="action-pill" href="{% url 'review' %}"><span>Review queue</span><strong>→</strong></a>{% endif %}
+          {% if nav_can_team %}<a class="action-pill" href="{% url 'team' %}"><span>Manage team</span><strong>→</strong></a>{% endif %}
+        </div>
+      </div>
+
+      <div class="card sidebar-card">
+        <div class="sidebar-label">Priority watch</div>
+        {% for site in sites %}
+          {% if site.needs_attention %}
+            <div class="mini-site">
+              <div>
+                <strong><a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a></strong>
+                <div class="muted small">{{ site.get_status_display }}</div>
+              </div>
+              <span class="badge st-{{ site.status }}">{{ site.progress }}%</span>
+            </div>
+          {% endif %}
+        {% empty %}
+          <p class="muted small">Nothing is flagged right now.</p>
+        {% endfor %}
+      </div>
+    </aside>
   </div>
-
-  {% if not org.is_verified %}
-    <div class="notice" role="status">
-      <b>Pending verification.</b> You can set up sites privately now. Publishing to the public portal unlocks once your organisation is verified.
-    </div>
-  {% endif %}
-
-  <section class="stats" aria-label="Status summary">
-    {% for s in status_counts %}
-      <div class="card stat">
-        <div class="stat-label"><span class="dot st-{{ s.key }}"></span>{{ s.label }}</div>
-        <div class="stat-num">{{ s.count }}</div>
-      </div>
-    {% endfor %}
-    <div class="stat attention">
-      <div class="stat-label">Needs attention</div>
-      <div class="stat-num">{{ attention_count }}</div>
-      <div class="stat-note">delayed, stalled, or no evidence for {{ stale_days }}+ days</div>
-    </div>
-  </section>
-
-  <section class="card sitelist" aria-label="Sites">
-    <h2>Sites</h2>
-    {% for site in sites %}
-      <div class="siterow">
-        <div class="site-name">
-          <b><a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a></b>
-          <div class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</div>
-        </div>
-        <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
-        <div class="progress">
-          <div class="bar"><i style="width: {{ site.progress }}%"></i></div>
-          <span class="mono">{{ site.progress }}%</span>
-        </div>
-        <span class="mono muted site-date">{{ site.target_date|date:"d M Y"|default:"No target" }}</span>
-        <span class="muted site-evidence">
-          {% if site.last_evidence %}{{ site.last_evidence|timesince }} ago{% else %}No evidence yet{% endif %}
-        </span>
-        {% if site.needs_attention %}<span class="tag-attention">Needs attention</span>{% endif %}
-      </div>
-    {% empty %}
-      <p class="muted">No sites yet. Add the first one from the admin for now.</p>
-    {% endfor %}
-  </section>
 {% endif %}
 {% endblock %}

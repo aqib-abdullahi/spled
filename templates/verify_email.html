@@ -1,0 +1,17 @@
+{% extends "auth_base.html" %}
+{% block title %}Verify your email{% endblock %}
+{% block panel %}
+{% if state == "ok" %}
+  <h1>Email verified</h1>
+  <p>Your account is ready. You can sign in now.</p>
+  <a class="btn btn-primary" href="{% url 'signin' %}">Sign in</a>
+{% elif state == "already" %}
+  <h1>Already verified</h1>
+  <p class="muted">This link has already been used.</p>
+  <a class="btn btn-dark" href="{% url 'signin' %}">Sign in</a>
+{% else %}
+  <h1>This link isn’t valid</h1>
+  <p class="muted">It may have expired or been mistyped. You can ask for a new one.</p>
+  <a class="btn btn-dark" href="{% url 'resend_verification' %}">Send a new link</a>
+{% endif %}
+{% endblock %}

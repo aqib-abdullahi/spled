@@ -1,0 +1,8 @@
+{% extends "auth_base.html" %}
+{% block title %}Check your email{% endblock %}
+{% block panel %}
+<h1>Check your email</h1>
+<p>If that address can be used, we’ve sent you a message with a link. Open it to continue. The link expires in 3 days.</p>
+<p class="muted">Nothing arrived? Check your spam folder, or <a href="{% url 'resend_verification' %}"><b>send the verification email again</b></a>.</p>
+<a class="btn" href="{% url 'signin' %}">Back to sign in</a>
+{% endblock %}

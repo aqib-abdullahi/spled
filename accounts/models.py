@@ -41,6 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone = models.CharField(max_length=30, blank=True)
     time_zone = models.CharField(max_length=64, default="Africa/Lagos")
     language = models.CharField(max_length=8, default="en")
+    email_verified_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(

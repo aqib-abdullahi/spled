@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="split">
+  <div class="split-side">
+    <div class="brand">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+      Spled
+    </div>
+    <div>
+      <h2>Evidence,<br>not claims.</h2>
+      <p>A shared record of what is really happening on your sites, wherever you are.</p>
+    </div>
+    <div class="accent">spled</div>
+  </div>
+  <main class="split-main">
+    <div class="stack" style="max-width:400px;width:100%">
+      {% block panel %}{% endblock %}
+    </div>
+  </main>
+</div>
+{% endblock %}

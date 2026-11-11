@@ -219,6 +219,7 @@ def invite_accept(request, token):
                 invitation.email,
                 form.cleaned_data["password1"],
                 full_name=form.cleaned_data["full_name"],
+                email_verified_at=timezone.now(),
             )
             _accept(request, invitation, new_user)
         login(request, new_user)

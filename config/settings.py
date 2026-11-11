@@ -176,3 +176,6 @@ PRIVATE_MEDIA_ROOT = BASE_DIR / "private_media"
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "Spled <no-reply@spled.local>"
+
+PASSWORD_RESET_TIMEOUT = 60 * 60 * 2
+EMAIL_VERIFY_MAX_AGE = 3 * 24 * 60 * 60

@@ -22,9 +22,9 @@
         <h1>Sign in</h1>
         <p class="muted">Agency and developer teams only.</p>
       </div>
-      {% if form.errors %}
-        <div class="alert" role="alert">That email and password don’t match.</div>
-      {% endif %}
+      {% for error in form.non_field_errors %}
+        <div class="alert" role="alert">{{ error }}</div>
+      {% endfor %}
       <div class="field">
         <label for="id_username">Work email</label>
         <input type="email" name="username" id="id_username" autocomplete="username"
@@ -37,6 +37,8 @@
                autocomplete="current-password" required>
       </div>
       <button class="btn btn-dark" type="submit">Sign in</button>
+      <p style="margin:0"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+      <p style="margin:0">New to Spled? <a href="{% url 'signup' %}"><b>Create an account</b></a></p>
     </form>
   </main>
 </div>

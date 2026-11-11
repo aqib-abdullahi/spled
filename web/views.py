@@ -132,10 +132,18 @@ def site_create(request):
         site = form.save(commit=False)
         site.organisation = org
         site.created_by = request.user
+        auto = org.is_verified and org.publish_new_sites_automatically
+        site.is_public = auto
         with transaction.atomic():
             site.save()
-            record(request.user, org, AuditEvent.Action.SITE_CREATED, site.pk, site.name)
-        messages.success(request, f"“{site.name}” was added.")
+            record(
+                request.user, org, AuditEvent.Action.SITE_CREATED, site.pk, site.name,
+                auto_published=auto,
+            )
+        messages.success(
+            request,
+            f"“{site.name}” was added and published." if auto else f"“{site.name}” was added.",
+        )
         return redirect("sites")
     return render(request, "site_form.html", {
         "active": "sites", "form": form, "title": "New site", "org": org,
@@ -428,6 +436,7 @@ AUDIT_GROUPS = {
     "publishing": ["site.published", "site.unpublished"],
     "review": ["review.approved", "review.rejected"],
     "corrections": ["evidence.amended"],
+    "settings": ["org.settings_changed"],
     "milestones": [
         "milestone.added", "milestone.completed", "milestone.reopened",
         "milestone.edited", "milestone.deleted",
@@ -439,7 +448,7 @@ AUDIT_GROUPS = {
 }
 AUDIT_CHIPS = [
     ("", "All"), ("sites", "Sites"), ("publishing", "Publishing"),
-    ("review", "Review"), ("corrections", "Corrections"), ("team", "Team"), ("milestones", "Milestones"),
+    ("review", "Review"), ("corrections", "Corrections"), ("team", "Team"), ("milestones", "Milestones"), ("settings", "Settings"),
 ]
 
 

@@ -1,0 +1,53 @@
+{% extends "app_base.html" %}
+{% block title %}Organisation settings{% endblock %}
+{% block content %}
+<div>
+  <h1>Organisation</h1>
+  <p class="muted" style="margin:6px 0 0">{{ org.name }} · {{ org.get_kind_display }}</p>
+</div>
+
+<section class="card" aria-label="Verification">
+  <h2 style="font-size:20px">Verification</h2>
+  <p style="margin:8px 0 0">
+    <span class="badge st-{% if org.is_verified %}complete{% else %}delayed{% endif %}">{{ org.get_verification_display }}</span>
+  </p>
+  <p class="muted" style="margin:8px 0 0">
+    {% if org.is_verified %}You can publish sites to the public portal.{% else %}Publishing to the public portal unlocks once the Spled team has verified your organisation. You can set up privately in the meantime.{% endif %}
+  </p>
+</section>
+
+<form method="post" class="card stack" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+
+  <h2 style="font-size:20px">Identity</h2>
+  <div class="field">
+    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>{{ form.name }}
+    {% for error in form.name.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+  </div>
+  <div class="field">
+    <label for="{{ form.public_name.id_for_label }}">{{ form.public_name.label }}</label>{{ form.public_name }}
+    <small class="muted">{{ form.public_name.help_text }}</small>
+    {% for error in form.public_name.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+  </div>
+
+  <h2 style="font-size:20px">Evidence rules</h2>
+  <div class="field">
+    <label for="{{ form.stale_after_days.id_for_label }}">{{ form.stale_after_days.label }}</label>{{ form.stale_after_days }}
+    <small class="muted">{{ form.stale_after_days.help_text }}</small>
+    {% for error in form.stale_after_days.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+  </div>
+  <div class="field">
+    <label class="checkrow">{{ form.require_onsite_for_status_changes }} {{ form.require_onsite_for_status_changes.label }}</label>
+    <small class="muted">When on, changing a site’s status needs evidence logged at the site. Turn it off only if your team often works without a phone signal.</small>
+  </div>
+
+  <h2 style="font-size:20px">Publishing</h2>
+  <div class="field">
+    <label class="checkrow">{{ form.publish_new_sites_automatically }} {{ form.publish_new_sites_automatically.label }}</label>
+    <small class="muted"><b>New sites become public the moment they’re saved</b>, including their location. Only applies to sites created after you turn it on, and only while your organisation is verified. Existing sites aren’t affected.</small>
+  </div>
+
+  <div class="actions"><button class="btn btn-dark" type="submit">Save settings</button></div>
+</form>
+{% endblock %}

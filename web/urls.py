@@ -94,3 +94,10 @@ urlpatterns += [
     path("app/sites/<int:pk>/milestones/<int:mpk>/move/", milestone_views.milestone_move, name="milestone_move"),
     path("app/sites/<int:pk>/milestones/<int:mpk>/delete/", milestone_views.milestone_delete, name="milestone_delete"),
 ]
+
+
+from . import org_views  # noqa: E402
+
+urlpatterns += [
+    path("app/organisation/", org_views.org_settings, name="org_settings"),
+]

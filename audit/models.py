@@ -34,6 +34,7 @@ class AuditEvent(models.Model):
         MILESTONE_REOPENED = "milestone.reopened", "Milestone reopened"
         MILESTONE_EDITED = "milestone.edited", "Milestone edited"
         MILESTONE_DELETED = "milestone.deleted", "Milestone deleted"
+        ORG_SETTINGS_CHANGED = "org.settings_changed", "Settings changed"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.PROTECT, related_name="audit_events"
@@ -60,7 +61,10 @@ class AuditEvent(models.Model):
     @property
     def summary(self):
         d = self.detail or {}
-        if self.action == self.Action.SITE_EDITED and d.get("fields"):
+        if self.action in (
+            self.Action.SITE_EDITED,
+            self.Action.ORG_SETTINGS_CHANGED,
+        ) and d.get("fields"):
             return "Changed: " + ", ".join(d["fields"])
         if self.action == self.Action.REVIEW_REJECTED and d.get("comment"):
             return d["comment"]
@@ -76,6 +80,8 @@ class AuditEvent(models.Model):
             return d.get("email", "")
         if self.action == self.Action.MEMBER_JOINED:
             return f"Joined as {d.get('role', '')}"
+        if self.action == self.Action.SITE_CREATED and d.get("auto_published"):
+            return "Published automatically"
         return ""
 
     def save(self, *args, **kwargs):

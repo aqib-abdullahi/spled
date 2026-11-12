@@ -25,6 +25,7 @@ EXPECTED = {
     p.CREATE_SHARE_LINKS: ["admin", "editor", "owner"],
     p.MANAGE_TEAM: ["admin"],
     p.MANAGE_ORGANISATION: ["admin"],
+    p.EXPORT_REPORTS: ["admin", "editor", "owner"],
 }
 
 

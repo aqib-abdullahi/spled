@@ -1,5 +1,6 @@
 from organisations.permissions import (
     APPROVE_ENTRIES,
+    EXPORT_REPORTS,
     MANAGE_ORGANISATION,
     MANAGE_TEAM,
     can,
@@ -21,6 +22,7 @@ def review_nav(request):
         "nav_can_review": can(user, APPROVE_ENTRIES, org),
         "nav_can_audit": can(user, MANAGE_ORGANISATION, org),
         "nav_can_team": can(user, MANAGE_TEAM, org),
+        "nav_can_export": can(user, EXPORT_REPORTS, org),
     }
     if result["nav_can_review"]:
         result["nav_pending_count"] = EvidenceEntry.objects.filter(

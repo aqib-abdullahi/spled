@@ -11,5 +11,13 @@
 </head>
 <body>
 {% block body %}{% endblock %}
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  });
+</script>
 </body>
 </html>

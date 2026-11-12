@@ -1,0 +1,37 @@
+{% extends "app_base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div>
+  <h1>Reports and exports</h1>
+  <p class="muted" style="margin:6px 0 0">{{ org.name }} · reports include only entries that count: no review needed, or approved.</p>
+</div>
+
+<section class="card" aria-label="Portfolio export">
+  <h2 style="font-size:20px">Portfolio</h2>
+  <p class="muted">One row per site: status, progress, location, milestones and evidence counts. Opens in Excel or any spreadsheet.</p>
+  <form method="post" action="{% url 'report_portfolio_csv' %}">
+    {% csrf_token %}
+    <button class="btn btn-dark" type="submit">Download CSV ({{ site_count }} site{{ site_count|pluralize }})</button>
+  </form>
+</section>
+
+<section class="card" aria-label="Site report">
+  <h2 style="font-size:20px;margin-bottom:12px">Site report</h2>
+  <form method="get" action="{% url 'report_site' %}" class="formgrid" novalidate>
+    {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="field wide">
+      <label for="{{ form.site.id_for_label }}">{{ form.site.label }}</label>{{ form.site }}
+      {% for error in form.site.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="field">
+      <label for="{{ form.date_from.id_for_label }}">From (optional)</label>{{ form.date_from }}
+      {% for error in form.date_from.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="field">
+      <label for="{{ form.date_to.id_for_label }}">To (optional)</label>{{ form.date_to }}
+      {% for error in form.date_to.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="actions wide"><button class="btn btn-primary" type="submit">View report</button></div>
+  </form>
+</section>
+{% endblock %}

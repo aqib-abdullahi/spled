@@ -35,6 +35,7 @@ class AuditEvent(models.Model):
         MILESTONE_EDITED = "milestone.edited", "Milestone edited"
         MILESTONE_DELETED = "milestone.deleted", "Milestone deleted"
         ORG_SETTINGS_CHANGED = "org.settings_changed", "Settings changed"
+        REPORT_EXPORTED = "report.exported", "Report exported"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.PROTECT, related_name="audit_events"
@@ -82,6 +83,10 @@ class AuditEvent(models.Model):
             return f"Joined as {d.get('role', '')}"
         if self.action == self.Action.SITE_CREATED and d.get("auto_published"):
             return "Published automatically"
+        if self.action == self.Action.REPORT_EXPORTED:
+            if d.get("kind") == "portfolio_csv":
+                return f"CSV with {d.get('rows', 0)} site(s)"
+            return f"Markdown report with {d.get('entries', 0)} entries"
         return ""
 
     def save(self, *args, **kwargs):

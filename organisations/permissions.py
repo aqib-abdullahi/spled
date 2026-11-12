@@ -11,6 +11,7 @@ AMEND_ENTRY = "amend_entry"
 SIGN_OFF = "sign_off"
 PUBLISH = "publish"
 CREATE_SHARE_LINKS = "create_share_links"
+EXPORT_REPORTS = "export_reports"
 MANAGE_TEAM = "manage_team"
 MANAGE_ORGANISATION = "manage_organisation"  # settings and billing
 
@@ -26,6 +27,7 @@ PERMISSIONS = {
     SIGN_OFF: {Role.ADMIN, Role.EDITOR, Role.OWNER},
     PUBLISH: {Role.ADMIN, Role.EDITOR},
     CREATE_SHARE_LINKS: {Role.ADMIN, Role.EDITOR, Role.OWNER},
+    EXPORT_REPORTS: {Role.ADMIN, Role.EDITOR, Role.OWNER},
     MANAGE_TEAM: {Role.ADMIN},
     MANAGE_ORGANISATION: {Role.ADMIN},
 }

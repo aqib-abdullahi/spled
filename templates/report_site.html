@@ -1,0 +1,95 @@
+{% extends "app_base.html" %}
+{% block title %}{{ report.site.name }} report{% endblock %}
+{% block content %}
+<nav class="muted noprint" aria-label="Breadcrumb"><a href="{% url 'reports' %}">Reports</a> / {{ report.site.name }}</nav>
+
+<div class="pagehead">
+  <div>
+    <h1>{{ report.site.name }}</h1>
+    <p class="muted" style="margin:6px 0 0">
+      Evidence report · {{ org.name }} ·
+      {% if start or end %}{{ start|date:"d M Y"|default:"the start" }} to {{ end|date:"d M Y"|default:"today" }}{% else %}all time{% endif %}
+    </p>
+  </div>
+  <div class="actions noprint">
+    <button type="button" class="btn" onclick="window.print()">Print or save as PDF</button>
+    <form method="post" action="{% url 'report_site_download' %}" class="inline">
+      {% csrf_token %}
+      <input type="hidden" name="site" value="{{ site.pk }}">
+      <input type="hidden" name="date_from" value="{{ start|date:'Y-m-d' }}">
+      <input type="hidden" name="date_to" value="{{ end|date:'Y-m-d' }}">
+      <button class="btn btn-dark" type="submit">Download Markdown</button>
+    </form>
+  </div>
+</div>
+
+<section class="card" aria-label="Summary">
+  <h2 style="font-size:20px">Summary</h2>
+  <p style="margin:8px 0 0">
+    <span class="badge st-{{ report.site.status }}">{{ report.site.get_status_display }}</span>
+    <span class="muted">{{ report.site.get_kind_display }}{% if report.site.owner_name %} · {{ report.site.owner_name }}{% endif %}</span>
+  </p>
+  <div class="progress" style="margin:14px 0">
+    <div class="bar"><i class="st-{{ report.site.status }}" style="width: {{ report.site.progress }}%"></i></div>
+    <span class="mono">{{ report.site.progress }}%</span>
+  </div>
+  <p class="muted" style="margin:0">
+    Target date {{ report.site.target_date|date:"d M Y"|default:"not set" }} ·
+    Location <span class="mono">{{ report.site.location.y|floatformat:6 }}, {{ report.site.location.x|floatformat:6 }}</span>
+    {% if report.area %}· Boundary {{ report.area|floatformat:1 }} ha{% endif %}
+    · {% if report.site.is_public %}Published{% else %}Private{% endif %}
+  </p>
+</section>
+
+<section class="card" aria-label="Milestones">
+  <h2 style="font-size:20px">Milestones</h2>
+  {% for m in report.milestones %}
+    <div class="mrow">
+      {% if m.completed_at %}<span class="vb vb-yes">✓</span>{% else %}<span class="vb vb-none">·</span>{% endif %}
+      <span>{{ m.title }}</span>
+      <span class="muted">{% if m.completed_at %}Done {{ m.completed_at|date:"d M Y" }}{% elif m.due_date %}Due {{ m.due_date|date:"d M Y" }}{% endif %}</span>
+    </div>
+  {% empty %}
+    <p class="muted" style="margin:8px 0 0">No milestones.</p>
+  {% endfor %}
+</section>
+
+<section class="card" aria-label="Evidence">
+  <h2 style="font-size:20px">Evidence</h2>
+  {% if report.truncated %}
+    <p class="muted">Showing the newest {{ report.entries|length }} of {{ report.entry_total }} entries in this period. Narrow the date range to see the rest.</p>
+  {% else %}
+    <p class="muted">{{ report.entry_total }} entr{{ report.entry_total|pluralize:"y,ies" }} in this period.</p>
+  {% endif %}
+  {% for e in report.entries %}
+    <article class="tl">
+      <div class="mono muted">{{ e.created_at|date:"d M Y" }}<br>{{ e.created_at|time:"H:i" }}</div>
+      <div>
+        <div class="tl-tags">
+          <span class="tag">{{ e.get_kind_display }}</span>
+          {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>
+          {% elif e.location %}<span class="vb vb-no">Not verified on site</span>
+          {% else %}<span class="vb vb-none">No location</span>{% endif %}
+          {% if e.amends_id %}<span class="vb vb-no">Correction</span>{% endif %}
+          {% if e.amendments.all %}<span class="vb vb-no">Amended</span>{% endif %}
+        </div>
+        <p>{{ e.body|linebreaksbr }}</p>
+        {% if e.amends_id %}<p class="muted">Correction. Reason: {{ e.amendment_reason }}</p>{% endif %}
+        {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+        <div class="muted">{{ e.author.full_name }}{% if e.distance_to_site_m is not None %} · {{ e.distance_to_site_m|floatformat:0 }} m from the site pin{% endif %}</div>
+        {% for p in e.photos.all %}<div class="muted mono" style="word-break:break-all">Photo {{ forloop.counter }} SHA-256 {{ p.sha256 }}</div>{% endfor %}
+      </div>
+    </article>
+  {% empty %}
+    <p class="muted">No evidence in this period.</p>
+  {% endfor %}
+</section>
+
+<section class="card" aria-label="About this report">
+  <p class="muted" style="margin:0">
+    Generated {{ report.generated_at|date:"d M Y, H:i" }}{% if report.generated_by %} by {{ report.generated_by.full_name }}{% endif %}.
+    Evidence chain check: {% if report.chain_ok %}intact{% else %}<b>FAILED its integrity check. Contact an administrator.</b>{% endif %}.
+    Entries awaiting review (not included): {{ report.pending }}.
+  </p>
+</section>
+{% endblock %}

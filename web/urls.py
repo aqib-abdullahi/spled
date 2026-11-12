@@ -109,3 +109,13 @@ urlpatterns += [
     path("map/", map_views.public_map, name="public_map"),
     path("map/data/", map_views.public_map_data, name="public_map_data"),
 ]
+
+
+from . import report_views  # noqa: E402
+
+urlpatterns += [
+    path("app/reports/", report_views.reports_page, name="reports"),
+    path("app/reports/site/", report_views.report_site, name="report_site"),
+    path("app/reports/site/download/", report_views.report_site_download, name="report_site_download"),
+    path("app/reports/portfolio.csv", report_views.report_portfolio_csv, name="report_portfolio_csv"),
+]

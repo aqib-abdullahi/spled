@@ -441,6 +441,7 @@ AUDIT_GROUPS = {
     "review": ["review.approved", "review.rejected"],
     "corrections": ["evidence.amended"],
     "settings": ["org.settings_changed"],
+    "exports": ["report.exported"],
     "milestones": [
         "milestone.added", "milestone.completed", "milestone.reopened",
         "milestone.edited", "milestone.deleted",
@@ -452,7 +453,7 @@ AUDIT_GROUPS = {
 }
 AUDIT_CHIPS = [
     ("", "All"), ("sites", "Sites"), ("publishing", "Publishing"),
-    ("review", "Review"), ("corrections", "Corrections"), ("team", "Team"), ("milestones", "Milestones"), ("settings", "Settings"),
+    ("review", "Review"), ("corrections", "Corrections"), ("team", "Team"), ("milestones", "Milestones"), ("settings", "Settings"), ("exports", "Exports"),
 ]
 
 

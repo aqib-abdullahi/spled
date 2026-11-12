@@ -7,7 +7,7 @@
   </a>
   <nav class="pubnav" aria-label="Main">
     <a href="{% url 'projects' %}"{% if active == 'projects' %} aria-current="page"{% endif %}>Projects</a>
-    <span aria-disabled="true">Map</span>
+    <a href="{% url 'public_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}>Map</a>
     <span aria-disabled="true">How evidence works</span>
     {% if request.user.is_authenticated %}
       <a class="btn btn-small" href="{% url 'overview' %}">Open your workspace</a>

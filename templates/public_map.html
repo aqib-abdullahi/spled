@@ -1,0 +1,41 @@
+{% extends "public_base.html" %}
+{% load static %}
+{% block title %}Map{% endblock %}
+{% block content %}
+<div>
+  <h1>Map</h1>
+  <p class="muted" style="margin:6px 0 0">Published projects. Select a pin for details.</p>
+</div>
+
+<ul class="maplegend" aria-label="Pin colours">
+  <li><span class="dot st-planned"></span>Planned</li>
+  <li><span class="dot st-in_progress"></span>In progress</li>
+  <li><span class="dot st-delayed"></span>Delayed</li>
+  <li><span class="dot st-stalled"></span>Stalled</li>
+  <li><span class="dot st-complete"></span>Complete</li>
+</ul>
+
+<div>
+  <div class="mapbox mapbox-tall" id="public-map" data-public-map
+       data-url="{% url 'public_map_data' %}"
+       role="region" aria-label="Map of published projects"></div>
+  <p class="muted mapstatus" role="status" style="margin:8px 0 0"></p>
+</div>
+
+<section class="card" aria-label="All projects">
+  <h2 style="font-size:20px;margin-bottom:8px">All projects</h2>
+  {% for p in projects %}
+    <div class="mrow">
+      <span class="badge st-{{ p.status }}">{{ p.get_status_display }}</span>
+      <a href="{% url 'project' p.pk %}"><b>{{ p.name }}</b></a>
+      <span class="muted">{{ p.organisation.public_name|default:p.organisation.name }}</span>
+    </div>
+  {% empty %}
+    <p class="muted">No projects have been published yet.</p>
+  {% endfor %}
+</section>
+
+<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/spled-map.js' %}"></script>
+{% endblock %}

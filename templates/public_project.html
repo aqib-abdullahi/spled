@@ -1,7 +1,7 @@
 {% extends "public_base.html" %}
 {% block title %}{{ site.name }}{% endblock %}
 {% block content %}
-<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'projects' %}">Projects</a> / {{ site.name }}</nav>
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'projects' %}">Projects</a> > {{ site.name }}</nav>
 
 <div>
   <div class="tl-tags">
@@ -41,6 +41,8 @@
   </section>
 
   <div class="side">
+    {% include "_site_map.html" %}
+
     <section class="card" aria-label="Progress">
       <h2>Progress</h2>
       <div class="progress" style="margin: 14px 0">

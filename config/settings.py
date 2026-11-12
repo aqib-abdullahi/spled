@@ -29,8 +29,18 @@ SECRET_KEY = 'django-insecure-elew9o98u0j3msyhg*of@we*$_y1mqjpt(id0w_mso&rdx$p6q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 
+                 '127.0.0.1',
+                 'boots-subtext-mossy.ngrok-free.dev']
 
+CSRF_TRUSTED_ORIGINS = ['https://boots-subtext-mossy.ngrok-free.dev', 'https://127.0.0.1']
+# CSRF_COOKIE_SECURE = True
+
+
+import mimetypes
+
+mimetypes.add_type("text/javascript", ".js", True)
+mimetypes.add_type("text/css", ".css", True)
 
 # Application definition
 

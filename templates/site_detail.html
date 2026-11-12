@@ -1,7 +1,7 @@
 {% extends "app_base.html" %}
 {% block title %}{{ site.name }}{% endblock %}
 {% block content %}
-<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / {{ site.name }}</nav>
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> > {{ site.name }}</nav>
 
 <div class="pagehead">
   <div>
@@ -29,37 +29,55 @@
   <section class="card main" aria-label="Evidence timeline">
     <h2>Evidence timeline</h2>
     {% for e in evidence %}
-      <article class="tl">
-        <div class="mono muted">{{ e.created_at|date:"d M Y" }}<br>{{ e.created_at|time:"H:i" }}</div>
-        <div>
-          <div class="tl-tags">
-            <span class="tag">{{ e.get_kind_display }}</span>
-            {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>
-            {% elif e.location %}<span class="vb vb-no">Not verified on site</span>
-            {% else %}<span class="vb vb-none">No location</span>{% endif %}
-            {% if e.amends_id %}<span class="vb vb-no">Correction</span>{% endif %}
-            {% if e.amendments.all %}<span class="vb vb-no">Amended</span>{% endif %}
-            {% if e.needs_review %}
-              {% if e.review.decision == 'approved' %}<span class="vb vb-yes">Approved</span>
-              {% elif e.review.decision == 'rejected' %}<span class="vb vb-bad">Rejected</span>
-              {% else %}<span class="vb vb-no">Pending review</span>{% endif %}
-            {% endif %}
-          </div>
-          <p>{{ e.body|linebreaksbr }}</p>
-          {% if e.amends_id %}<p class="muted">Correction. Reason: {{ e.amendment_reason }}</p>{% endif %}
-          {% if e.review.decision == 'rejected' %}<p class="muted">Rejected by {{ e.review.reviewer.full_name }}: {{ e.review.comment }}</p>{% endif %}
-          {% include "_photos.html" %}
-          {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
-          <div class="muted">{{ e.author.full_name }}{% if e.distance_to_site_m is not None %} · {{ e.distance_to_site_m|floatformat:0 }} m from the site pin{% endif %}</div>
-          {% if can_amend and e.review_state != "pending" and e.review_state != "rejected" %}<a class="amendlink" href="{% url 'evidence_amend' e.pk %}">Amend this entry</a>{% endif %}
+      <details class="evidence-entry" {% if forloop.first %}open{% endif %}>
+        <summary>
+          <span class="mono muted">{{ e.created_at|date:"d M Y" }} · {{ e.created_at|time:"H:i" }}</span>
+          <span class="tag">{{ e.get_kind_display }}</span>
+          {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified</span>
+          {% elif e.location %}<span class="vb vb-no">Not verified</span>
+          {% else %}<span class="vb vb-none">No location</span>{% endif %}
+        </summary>
+        <div class="evidence-body">
+          <article class="tl">
+            <div class="mono muted">{{ e.created_at|date:"d M Y" }}<br>{{ e.created_at|time:"H:i" }}</div>
+            <div>
+              <div class="tl-tags">
+                <span class="tag">{{ e.get_kind_display }}</span>
+                {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>
+                {% elif e.location %}<span class="vb vb-no">Not verified on site</span>
+                {% else %}<span class="vb vb-none">No location</span>{% endif %}
+                {% if e.amends_id %}<span class="vb vb-no">Correction</span>{% endif %}
+                {% if e.amendments.all %}<span class="vb vb-no">Amended</span>{% endif %}
+                {% if e.needs_review %}
+                  {% if e.review.decision == 'approved' %}<span class="vb vb-yes">Approved</span>
+                  {% elif e.review.decision == 'rejected' %}<span class="vb vb-bad">Rejected</span>
+                  {% else %}<span class="vb vb-no">Pending review</span>{% endif %}
+                {% endif %}
+              </div>
+              <p>{{ e.body|linebreaksbr }}</p>
+              {% if e.amends_id %}<p class="muted">Correction. Reason: {{ e.amendment_reason }}</p>{% endif %}
+              {% if e.review.decision == 'rejected' %}<p class="muted">Rejected by {{ e.review.reviewer.full_name }}: {{ e.review.comment }}</p>{% endif %}
+              {% include "_photos.html" %}
+              {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+              <div class="entry-meta">
+                <span class="entry-author">Entry by {{ e.author.full_name }}</span>
+                {% if e.distance_to_site_m is not None %}<span class="muted">· {{ e.distance_to_site_m|floatformat:0 }} m from the site pin</span>{% endif %}
+              </div>
+              {% if can_amend and e.review_state != "pending" and e.review_state != "rejected" %}<a class="amendlink" href="{% url 'evidence_amend' e.pk %}">Amend this entry</a>{% endif %}
+            </div>
+          </article>
         </div>
-      </article>
+      </details>
     {% empty %}
-      <p class="muted">No evidence yet.{% if can_log %} Log the first entry.{% endif %}</p>
+      <div class="evidence-empty">
+        <p class="muted" style="margin:0;">No evidence yet.{% if can_log %} Log the first entry.{% endif %}</p>
+      </div>
     {% endfor %}
   </section>
 
   <div class="side">
+    {% include "_site_map.html" %}
+
     <section class="card" aria-label="Progress">
       <h2>Progress</h2>
       <div class="progress" style="margin: 14px 0">

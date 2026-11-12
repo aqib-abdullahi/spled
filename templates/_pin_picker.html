@@ -1,0 +1,23 @@
+{% load static %}
+<div class="field wide">
+  <p id="pin-label" style="margin:0;font-weight:500;font-size:14px">Location and boundary</p>
+  <div class="maptools" id="map-tools" role="group" aria-label="Map tools">
+    <button type="button" class="btn btn-small" data-mode="pin" aria-pressed="true">Place pin</button>
+    <button type="button" class="btn btn-small" data-mode="boundary" aria-pressed="false">Draw boundary</button>
+    <button type="button" class="btn btn-small" data-action="undo">Undo last point</button>
+    <button type="button" class="btn btn-small" data-action="clear">Clear boundary</button>
+  </div>
+  <div class="mapbox" id="pin-map" data-pin-picker
+       data-lat-input="id_latitude" data-lon-input="id_longitude"
+       data-boundary-input="id_boundary" data-boundary-tools="map-tools" data-boundary-status="map-status"
+       role="region" aria-labelledby="pin-label"></div>
+  <p class="muted mapstatus" id="map-status" role="status" style="margin:0"></p>
+  <small class="muted">
+    <b>Place pin:</b> tap the map or drag the pin, or type the coordinates above.
+    <b>Draw boundary:</b> tap the corners in order, drag a corner to adjust it, right-click a corner to remove it.
+    The pin must be inside the boundary. A boundary is optional, and saving with none removes any existing one.
+  </small>
+</div>
+<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/spled-map.js' %}"></script>

@@ -1,7 +1,7 @@
 {% extends "app_base.html" %}
 {% block title %}Milestones{% endblock %}
 {% block content %}
-<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> / Milestones</nav>
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> > <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> > Milestones</nav>
 <div>
   <h1>Milestones</h1>
   <p class="muted" style="margin:6px 0 0">{{ done }} of {{ total }} done{% if site.progress_from_milestones %} · progress follows milestones ({{ site.progress }}%){% endif %}</p>
@@ -21,9 +21,9 @@
 </section>
 {% endif %}
 
-<section class="card" aria-label="Milestones">
+<section class="card milestone-list" aria-label="Milestones">
   {% for m in milestones %}
-    <div class="msrow">
+    <div class="msrow" data-milestone-row>
       <div class="msmain">
         {% if m.is_done %}<span class="vb vb-yes">✓ Done {{ m.completed_at|date:"d M Y" }}</span>{% else %}<span class="vb vb-none">Open</span>{% endif %}
         <b class="mstitle">{{ m.title }}</b>
@@ -31,17 +31,20 @@
       </div>
       {% if can_edit %}
       <div class="msactions">
-        <form method="post" action="{% url 'milestone_toggle' site.pk m.pk %}">{% csrf_token %}
-          <button class="btn btn-small" type="submit">{% if m.is_done %}Reopen{% else %}Mark done{% endif %}</button>
+        <form method="post" action="{% url 'milestone_toggle' site.pk m.pk %}" data-milestone-toggle>
+          {% csrf_token %}
+          <button class="btn btn-small" type="submit" data-toggle-button="true" data-done="{% if m.is_done %}true{% else %}false{% endif %}">{% if m.is_done %}Reopen{% else %}Mark done{% endif %}</button>
         </form>
-        <form method="post" action="{% url 'milestone_move' site.pk m.pk %}">{% csrf_token %}
-          <button class="btn btn-small" name="direction" value="up" type="submit" aria-label="Move {{ m.title }} up"{% if forloop.first %} disabled{% endif %}>↑</button>
+        <form method="post" action="{% url 'milestone_move' site.pk m.pk %}" data-move-form>
+          {% csrf_token %}
+          <button class="btn btn-small" name="direction" value="up" type="submit" data-move-direction="up" aria-label="Move {{ m.title }} up"{% if forloop.first %} disabled{% endif %}>↑</button>
         </form>
-        <form method="post" action="{% url 'milestone_move' site.pk m.pk %}">{% csrf_token %}
-          <button class="btn btn-small" name="direction" value="down" type="submit" aria-label="Move {{ m.title }} down"{% if forloop.last %} disabled{% endif %}>↓</button>
+        <form method="post" action="{% url 'milestone_move' site.pk m.pk %}" data-move-form>
+          {% csrf_token %}
+          <button class="btn btn-small" name="direction" value="down" type="submit" data-move-direction="down" aria-label="Move {{ m.title }} down"{% if forloop.last %} disabled{% endif %}>↓</button>
         </form>
         {% if not m.is_done %}
-        <form method="post" action="{% url 'milestone_delete' site.pk m.pk %}" onsubmit="return confirm('Delete this milestone?');">{% csrf_token %}
+        <form method="post" action="{% url 'milestone_delete' site.pk m.pk %}" data-milestone-delete onsubmit="return confirm('Delete this milestone?');">{% csrf_token %}
           <button class="btn btn-small" type="submit">Delete</button>
         </form>
         {% endif %}
@@ -67,6 +70,107 @@
     <p class="muted">No milestones yet.</p>
   {% endfor %}
 </section>
+
+<script>
+  (() => {
+    const list = document.querySelector('.milestone-list');
+    if (!list) return;
+
+    const syncMoveButtons = () => {
+      const rows = [...list.querySelectorAll('[data-milestone-row]')];
+      rows.forEach((row, index) => {
+        const buttons = row.querySelectorAll('[data-move-direction]');
+        buttons.forEach((button) => {
+          const dir = button.dataset.moveDirection;
+          const disabled = dir === 'up' ? index === 0 : index === rows.length - 1;
+          button.disabled = disabled;
+        });
+      });
+    };
+
+    const moveRow = (row, direction) => {
+      const rows = [...list.querySelectorAll('[data-milestone-row]')];
+      const index = rows.indexOf(row);
+      if (index === -1) return;
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= rows.length) return;
+      const targetRow = rows[targetIndex];
+      if (direction === 'up') {
+        targetRow.before(row);
+      } else {
+        targetRow.after(row);
+      }
+      syncMoveButtons();
+    };
+
+    document.querySelectorAll('[data-move-form]').forEach((form) => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const row = form.closest('[data-milestone-row]');
+        const direction = form.querySelector('[data-move-direction]')?.dataset.moveDirection;
+        if (!row || !direction) return;
+
+        const csrf = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+        const body = new FormData(form);
+
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': csrf || '', 'X-Requested-With': 'XMLHttpRequest' },
+            body,
+          });
+          if (!response.ok) {
+            throw new Error('Request failed');
+          }
+          moveRow(row, direction);
+        } catch (error) {
+          console.error('Milestone reorder failed:', error);
+          window.location.reload();
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-milestone-toggle]').forEach((form) => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const row = form.closest('[data-milestone-row]');
+        if (!row) return;
+
+        const button = form.querySelector('[data-toggle-button]');
+        const badge = row.querySelector('.msmain .vb');
+        const csrf = form.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+        const body = new FormData(form);
+
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'X-CSRFToken': csrf || '', 'X-Requested-With': 'XMLHttpRequest' },
+            body,
+          });
+          if (!response.ok) {
+            throw new Error('Request failed');
+          }
+
+          const done = button.dataset.done === 'true';
+          button.dataset.done = String(!done);
+          button.textContent = done ? 'Mark done' : 'Reopen';
+
+          if (badge) {
+            badge.className = done ? 'vb vb-none' : 'vb vb-yes';
+            badge.textContent = done ? 'Open' : '✓ Done ' + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, ' ');
+          }
+        } catch (error) {
+          console.error('Milestone toggle failed:', error);
+          window.location.reload();
+        }
+      });
+    });
+
+    syncMoveButtons();
+  })();
+</script>
 
 {% if can_edit %}
 <section class="card" aria-label="Add a milestone">

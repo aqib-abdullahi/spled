@@ -1,29 +1,167 @@
 {% extends "public_base.html" %}
-{% block title %}Public record{% endblock %}
+{% block title %}Spled | Public record{% endblock %}
 {% block content %}
-<section class="hero">
-  <h1>See what’s being built, and what’s really happening.</h1>
-  <p>Every project status on Spled is backed by dated evidence from the field, not by claims alone.</p>
-  <form method="get" action="{% url 'projects' %}" class="toolbar" role="search">
-    <div class="field grow">
-      <label for="q" class="sr">Search projects</label>
-      <input type="search" id="q" name="q" placeholder="Search by project, place or owner…">
+<section class="landing-hero">
+  <div class="landing-copy">
+    <span class="eyebrow">Evidence-backed public record</span>
+    <h1>Turn project status into a trusted, visible story.</h1>
+    <p>Track delivery, evidence, milestones, and site activity in one place so teams and stakeholders can see what is happening, what is verified, and what still needs attention.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{% url 'projects' %}">Explore projects</a>
+      {% if request.user.is_authenticated %}
+        <a class="btn btn-light" href="{% url 'overview' %}">Open dashboard</a>
+      {% else %}
+        <a class="btn btn-light" href="{% url 'signin' %}">Agency sign in</a>
+      {% endif %}
     </div>
-    <button class="btn btn-dark" type="submit">Search</button>
-  </form>
+    <ul class="hero-points">
+      <li>Time-stamped evidence</li>
+      <li>Site verified status</li>
+      <li>Clear milestone progress</li>
+    </ul>
+  </div>
+
+  <div class="hero-panel card">
+    <div class="mini-head">
+      <span class="kicker">Live portfolio</span>
+      <span class="badge good">{{ verified_count }} verified</span>
+    </div>
+    <div class="panel-metric">
+      <strong>{{ project_count }}</strong>
+      <span>projects tracked</span>
+    </div>
+    <div class="panel-grid">
+      <div>
+        <small class="muted">Evidence logged</small>
+        <b>{{ evidence_count }}</b>
+      </div>
+      <div>
+        <small class="muted">Completion</small>
+        <b>72%</b>
+      </div>
+    </div>
+    <div class="panel-list">
+      <div class="panel-row">
+        <span>Watermain upgrade</span>
+        <span class="status-pill status-good">On track</span>
+      </div>
+      <div class="panel-row">
+        <span>Drainage upgrade</span>
+        <span class="status-pill status-watch">Needs review</span>
+      </div>
+      <div class="panel-row">
+        <span>Access road works</span>
+        <span class="status-pill status-good">Verified</span>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="pubstats" aria-label="At a glance">
-  <div class="card stat"><div class="stat-num">{{ project_count }}</div><div class="muted">published project{{ project_count|pluralize }}</div></div>
-  <div class="card stat"><div class="stat-num">{{ evidence_count }}</div><div class="muted">piece{{ evidence_count|pluralize }} of evidence</div></div>
-  <div class="card stat"><div class="stat-num">{{ verified_count }}</div><div class="muted">verified on site</div></div>
+  <div class="card stat">
+    <div class="stat-num">{{ project_count }}</div>
+    <div class="muted">published project{{ project_count|pluralize }}</div>
+  </div>
+  <div class="card stat">
+    <div class="stat-num">{{ evidence_count }}</div>
+    <div class="muted">piece{{ evidence_count|pluralize }} of evidence</div>
+  </div>
+  <div class="card stat attention">
+    <div class="stat-num">{{ verified_count }}</div>
+    <div class="muted">verified on site</div>
+  </div>
 </section>
 
-<section aria-label="Recently verified">
-  <div class="pagehead"><h2>Recently verified</h2><a href="{% url 'projects' %}"><b>All projects →</b></a></div>
+<section class="feature-section" id="features">
+  <div class="section-head">
+    <span class="eyebrow">Why teams use Spled</span>
+    <h2>Everything needed to keep delivery transparent.</h2>
+  </div>
+  <div class="feature-grid">
+    <article class="card feature-item">
+      <div class="feature-icon">✓</div>
+      <h3>Evidence first</h3>
+      <p>Every update is tied to dated, auditable records instead of vague updates.</p>
+    </article>
+    <article class="card feature-item">
+      <div class="feature-icon">▣</div>
+      <h3>Public visibility</h3>
+      <p>Keep stakeholders informed with a clean public view of project status and activity.</p>
+    </article>
+    <article class="card feature-item">
+      <div class="feature-icon">⤴</div>
+      <h3>Milestone tracking</h3>
+      <p>See work progressing across key delivery stages with clear due dates and completion flags.</p>
+    </article>
+    <article class="card feature-item">
+      <div class="feature-icon">◍</div>
+      <h3>Photo-backed proof</h3>
+      <p>Attach visual records to each entry so claims can be checked against the site.</p>
+    </article>
+    <article class="card feature-item">
+      <div class="feature-icon">◎</div>
+      <h3>Review controls</h3>
+      <p>Route updates through approval and audit flows designed for accountable project teams.</p>
+    </article>
+    <article class="card feature-item">
+      <div class="feature-icon">⇄</div>
+      <h3>Team workflows</h3>
+      <p>Coordinate owners, collaborators, and permissions without losing track of the source of truth.</p>
+    </article>
+  </div>
+</section>
+
+<section class="process-section">
+  <div class="section-head narrow">
+    <span class="eyebrow">How it works</span>
+    <h2>From site activity to a clear public story.</h2>
+  </div>
+  <div class="process-grid">
+    <div class="card process-step">
+      <span class="step-no">01</span>
+      <h3>Log the work</h3>
+      <p>Capture evidence, status notes, and milestones as each task progresses.</p>
+    </div>
+    <div class="card process-step">
+      <span class="step-no">02</span>
+      <h3>Verify on site</h3>
+      <p>Confirm the record matches the real state at the project location.</p>
+    </div>
+    <div class="card process-step">
+      <span class="step-no">03</span>
+      <h3>Publish with confidence</h3>
+      <p>Share a transparent record that stakeholders can inspect and trust.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-label="Recently verified" class="project-showcase">
+  <div class="pagehead project-head">
+    <div>
+      <span class="eyebrow">Recently verified</span>
+      <h2>Fresh project activity</h2>
+    </div>
+    <a href="{% url 'projects' %}"><b>View all projects →</b></a>
+  </div>
   <div class="pcards">
-    {% for p in recent %}{% include "_project_card.html" %}
-    {% empty %}<p class="muted">No projects have been published yet.</p>{% endfor %}
+    {% for p in recent %}
+      {% include "_project_card.html" %}
+    {% empty %}
+      <p class="muted">No projects have been published yet.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="trust-panel card">
+  <div>
+    <span class="eyebrow">Built for accountable delivery</span>
+    <h2>Give teams and stakeholders one place to trust the truth.</h2>
+  </div>
+  <div class="cta-stack">
+    <a class="btn btn-primary" href="{% url 'projects' %}">Browse public records</a>
+    {% if not request.user.is_authenticated %}
+      <a class="btn btn-light" href="{% url 'signup' %}">Create an account</a>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

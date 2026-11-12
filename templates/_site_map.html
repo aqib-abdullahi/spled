@@ -1,0 +1,17 @@
+{% load static %}
+<section class="card" aria-label="Location">
+  <h2>Location</h2>
+  <div class="mapbox" id="site-map" data-site-map
+       data-lat="{{ site.location.y|stringformat:'.6f' }}"
+       data-lon="{{ site.location.x|stringformat:'.6f' }}"
+       data-status="{{ site.status }}"
+       {% if site.boundary %}data-boundary="{{ site.boundary.geojson }}"{% endif %}
+       role="region" aria-label="Map showing the site location"></div>
+  <p class="muted" style="margin:8px 0 0">
+    <span class="mono">{{ site.location.y|floatformat:4 }}, {{ site.location.x|floatformat:4 }}</span>
+    {% if site.boundary %}· Boundary {{ site.area_hectares|floatformat:1 }} ha{% endif %}
+  </p>
+</section>
+<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/spled-map.js' %}"></script>

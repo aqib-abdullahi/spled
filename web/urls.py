@@ -101,3 +101,11 @@ from . import org_views  # noqa: E402
 urlpatterns += [
     path("app/organisation/", org_views.org_settings, name="org_settings"),
 ]
+
+
+from . import map_views  # noqa: E402
+
+urlpatterns += [
+    path("map/", map_views.public_map, name="public_map"),
+    path("map/data/", map_views.public_map_data, name="public_map_data"),
+]

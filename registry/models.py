@@ -79,6 +79,15 @@ class Site(models.Model):
     def is_archived(self):
         return self.archived_at is not None
 
+    @property
+    def area_hectares(self):
+        """Area of the drawn boundary in hectares, or None."""
+        if not self.boundary:
+            return None
+        from .geo import area_hectares
+
+        return area_hectares(self.boundary)
+
     def archive(self):
         self.archived_at = timezone.now()
         self.is_public = False

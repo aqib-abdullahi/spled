@@ -1,7 +1,7 @@
 {% extends "auth_base.html" %}
 {% block title %}Send the verification email again{% endblock %}
 {% block panel %}
-<form method="post" class="stack" novalidate>
+<form method="post" class="stack auth-form" novalidate>
   {% csrf_token %}
   <div>
     <h1>Verify your email</h1>

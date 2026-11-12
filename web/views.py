@@ -165,11 +165,15 @@ def site_edit(request, pk):
         changed = [str(form[n].label) for n in form.changed_data]
         with transaction.atomic():
             form.save()
-            record(
-                request.user, org, AuditEvent.Action.SITE_EDITED,
-                site.pk, site.name, fields=changed,
-            )
-        messages.success(request, f"“{site.name}” was saved.")
+            if changed:
+                record(
+                    request.user, org, AuditEvent.Action.SITE_EDITED,
+                    site.pk, site.name, fields=changed,
+                )
+        if changed:
+            messages.success(request, f"“{site.name}” was saved.")
+        else:
+            messages.info(request, "Nothing changed.")
         return redirect("sites")
     return render(request, "site_form.html", {
         "active": "sites", "form": form, "title": "Edit site", "org": org, "site": site,

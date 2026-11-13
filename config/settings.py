@@ -24,16 +24,14 @@ environ.Env.read_env(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-elew9o98u0j3msyhg*of@we*$_y1mqjpt(id0w_mso&rdx$p6q'
+# SECRET_KEY now comes from the environment (see the end of this file).
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = ['localhost', 
-                 '127.0.0.1',
-                 'boots-subtext-mossy.ngrok-free.dev']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
-CSRF_TRUSTED_ORIGINS = ['https://boots-subtext-mossy.ngrok-free.dev', 'https://127.0.0.1']
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://boots-subtext-mossy.ngrok-free.dev", "https://127.0.0.1"])
 # CSRF_COOKIE_SECURE = True
 
 
@@ -57,6 +55,7 @@ INSTALLED_APPS = [
     'registry',
     'web',
     'audit',
+    'sharing',
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -189,3 +188,73 @@ DEFAULT_FROM_EMAIL = "Spled <no-reply@spled.local>"
 
 PASSWORD_RESET_TIMEOUT = 60 * 60 * 2
 EMAIL_VERIFY_MAX_AGE = 3 * 24 * 60 * 60
+
+
+# ===== Security hardening (Step 34) =====
+# Everything below overrides earlier values. Secrets and switches come from .env.
+import sys  # noqa: E402
+
+from django.core.exceptions import ImproperlyConfigured  # noqa: E402
+
+DEBUG = env.bool("DEBUG", default=False)
+
+SECRET_KEY = env("SECRET_KEY", default="")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-only-key-" + "x" * 50
+    else:
+        raise ImproperlyConfigured(
+            "SECRET_KEY is not set. Put a long random value in the environment or in .env."
+        )
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
+CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
+AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 10},
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+]
+
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default=(
+        "django.core.mail.backends.console.EmailBackend"
+        if DEBUG
+        else "django.core.mail.backends.smtp.EmailBackend"
+    ),
+)
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Spled <no-reply@spled.local>")
+
+INSTALLED_APPS += ["security"]
+MIDDLEWARE += [
+    "security.middleware.AuthThrottleMiddleware",
+    "security.middleware.SecurityHeadersMiddleware",
+]
+
+TRUSTED_PROXY_COUNT = 0
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True) and "test" not in sys.argv
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = env.int("HSTS_SECONDS", default=3600)  # raise once HTTPS is proven
+    if env.bool("BEHIND_PROXY", default=False):
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+        TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=1)
+    # Deliberately left off: applying HSTS to every subdomain, and browser preload lists.
+    SILENCED_SYSTEM_CHECKS = ["security.W005", "security.W021"]

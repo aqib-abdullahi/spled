@@ -36,6 +36,8 @@ class AuditEvent(models.Model):
         MILESTONE_DELETED = "milestone.deleted", "Milestone deleted"
         ORG_SETTINGS_CHANGED = "org.settings_changed", "Settings changed"
         REPORT_EXPORTED = "report.exported", "Report exported"
+        SHARE_CREATED = "share.created", "Share link created"
+        SHARE_REVOKED = "share.revoked", "Share link revoked"
 
     organisation = models.ForeignKey(
         Organisation, on_delete=models.PROTECT, related_name="audit_events"
@@ -87,6 +89,8 @@ class AuditEvent(models.Model):
             if d.get("kind") == "portfolio_csv":
                 return f"CSV with {d.get('rows', 0)} site(s)"
             return f"Markdown report with {d.get('entries', 0)} entries"
+        if self.action in (self.Action.SHARE_CREATED, self.Action.SHARE_REVOKED):
+            return d.get("label", "")
         return ""
 
     def save(self, *args, **kwargs):

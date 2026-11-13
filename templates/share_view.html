@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ site.name }}{% endblock %}
+{% block body %}
+<div class="sharebanner" role="note">
+  Read-only view shared by <b>{{ org.public_name|default:org.name }}</b>. This link expires {{ link.expires_at|date:"d M Y" }}.
+</div>
+<header class="pubbar">
+  <span class="brand">
+    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+    Spled
+  </span>
+</header>
+<main class="page pubpage">
+  <div>
+    <div class="tl-tags"><span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span></div>
+    <h1>{{ site.name }}</h1>
+    <p class="muted" style="margin:8px 0 0">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</p>
+  </div>
+
+  <div class="detailgrid">
+    <section class="card main" aria-label="Evidence record">
+      <h2>Evidence record</h2>
+      {% if truncated %}<p class="muted">Showing the newest {{ entries|length }} of {{ entry_total }} entries.</p>{% endif %}
+      {% for e in entries %}
+        <article class="tl">
+          <div class="mono muted">{{ e.created_at|date:"d M Y" }}</div>
+          <div>
+            <div class="tl-tags">
+              <span class="tag">{{ e.get_kind_display }}</span>
+              {% if e.verified_on_site %}<span class="vb vb-yes">✓ Verified on site</span>{% endif %}
+              {% if e.amends_id %}<span class="vb vb-no">Correction</span>{% endif %}
+              {% if e.amendments.all %}<span class="vb vb-no">Amended</span>{% endif %}
+            </div>
+            <p>{{ e.body|linebreaksbr }}</p>
+            {% if e.amends_id %}<p class="muted">Correction. Reason: {{ e.amendment_reason }}</p>{% endif %}
+            {% include "_share_photos.html" %}
+            {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
+            <div class="muted">Logged by the project team</div>
+          </div>
+        </article>
+      {% empty %}
+        <p class="muted">No evidence has been logged yet.</p>
+      {% endfor %}
+    </section>
+
+    <div class="side">
+      {% include "_site_map.html" %}
+      <section class="card" aria-label="Progress">
+        <h2>Progress</h2>
+        <div class="progress" style="margin: 14px 0">
+          <div class="bar"><i class="st-{{ site.status }}" style="width: {{ site.progress }}%"></i></div>
+          <span class="mono">{{ site.progress }}%</span>
+        </div>
+        <div class="muted">Target date · <span class="mono">{{ site.target_date|date:"d M Y"|default:"not set" }}</span></div>
+      </section>
+      {% if link.include_milestones %}
+      <section class="card" aria-label="Milestones">
+        <h2>Milestones</h2>
+        {% for m in milestones %}
+          <div class="mrow">
+            {% if m.is_done %}<span class="vb vb-yes">✓</span>{% else %}<span class="vb vb-none">·</span>{% endif %}
+            <span>{{ m.title }}</span>
+            <span class="muted">{% if m.is_done %}{{ m.completed_at|date:"d M Y" }}{% elif m.due_date %}Due {{ m.due_date|date:"d M Y" }}{% endif %}</span>
+          </div>
+        {% empty %}
+          <p class="muted" style="margin:8px 0 0">No milestones yet.</p>
+        {% endfor %}
+      </section>
+      {% endif %}
+    </div>
+  </div>
+</main>
+<footer class="pubfoot muted">
+  This page is private to people who were sent the link. Status comes from dated evidence logged by the project team. “Verified on site” means the reported location was inside or near the project site.
+</footer>
+{% endblock %}

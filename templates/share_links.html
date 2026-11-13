@@ -1,0 +1,87 @@
+{% extends "app_base.html" %}
+{% block title %}Share {{ site.name }}{% endblock %}
+{% block content %}
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> / Share</nav>
+<div>
+  <h1>Share this site</h1>
+  <p class="muted" style="margin:6px 0 0">Read-only links for people outside your team. They show the site’s counted evidence as it is now, without staff names.</p>
+</div>
+
+{% if new_link %}
+<section class="card" aria-label="New link" role="status">
+  <h2 style="font-size:20px">Your new link</h2>
+  <p style="margin:6px 0 12px"><b>Copy it now.</b> For security we can’t show it again.</p>
+  <div class="inline">
+    <input class="mono linkbox" id="new-link" value="{{ new_link.url }}" readonly aria-label="Share link">
+    <button type="button" class="btn" id="copy-link">Copy</button>
+  </div>
+  <small class="muted" id="copy-status" role="status"></small>
+</section>
+<script>
+  document.getElementById("copy-link").addEventListener("click", function () {
+    var input = document.getElementById("new-link");
+    var status = document.getElementById("copy-status");
+    input.select();
+    var done = function () { status.textContent = " Copied."; };
+    var fallback = function () { status.textContent = " Press Ctrl+C to copy."; };
+    if (navigator.clipboard) { navigator.clipboard.writeText(input.value).then(done, fallback); }
+    else { fallback(); }
+  });
+</script>
+{% endif %}
+
+<section class="card" aria-label="Create a link">
+  <h2 style="font-size:20px;margin-bottom:12px">Create a link</h2>
+  <form method="post" action="{% url 'share_create' site.pk %}" class="formgrid" novalidate autocomplete="off">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="field">
+      <label for="{{ form.label.id_for_label }}">{{ form.label.label }}</label>{{ form.label }}
+      <small class="muted">{{ form.label.help_text }}</small>
+      {% for error in form.label.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="field">
+      <label for="{{ form.days.id_for_label }}">{{ form.days.label }}</label>{{ form.days }}
+      {% for error in form.days.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="field wide">
+      <label class="checkrow">{{ form.include_photos }} {{ form.include_photos.label }}</label>
+      <label class="checkrow">{{ form.include_milestones }} {{ form.include_milestones.label }}</label>
+    </div>
+    <div class="field wide">
+      <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>{{ form.password }}
+      <small class="muted">{{ form.password.help_text }}</small>
+      {% for error in form.password.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="actions wide"><button class="btn btn-dark" type="submit">Create link</button></div>
+  </form>
+  <small class="muted">{{ active_count }} of {{ max_links }} active links used.</small>
+</section>
+
+<section class="card" aria-label="Links for this site">
+  <h2 style="font-size:20px">Links for this site</h2>
+  {% for l in links %}
+    <div class="sharerow">
+      <div>
+        <b>{{ l.label }}</b>
+        {% if l.state == "active" %}<span class="vb vb-yes">Active</span>
+        {% elif l.state == "revoked" %}<span class="vb vb-none">Revoked</span>
+        {% elif l.state == "expired" %}<span class="vb vb-no">Expired</span>
+        {% else %}<span class="vb vb-no">Site archived</span>{% endif %}
+        <div class="muted">Created {{ l.created_at|date:"d M Y" }} by {{ l.created_by.full_name }} · Expires {{ l.expires_at|date:"d M Y" }}</div>
+        <div class="muted">{% if l.include_photos %}Photos{% else %}No photos{% endif %} · {% if l.include_milestones %}Milestones{% else %}No milestones{% endif %} · {% if l.has_password %}Password protected{% else %}No password{% endif %}</div>
+        <div class="muted">{{ l.view_count }} view{{ l.view_count|pluralize }}{% if l.last_viewed_at %} · last viewed {{ l.last_viewed_at|timesince }} ago{% endif %}</div>
+      </div>
+      {% if l.state == "active" %}
+      <form method="post" action="{% url 'share_revoke' site.pk l.pk %}" class="inline"
+            onsubmit="return confirm('Revoke this link? Anyone using it will lose access.');">
+        {% csrf_token %}
+        <button class="btn btn-small" type="submit">Revoke</button>
+      </form>
+      {% endif %}
+    </div>
+  {% empty %}
+    <p class="muted">No links yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

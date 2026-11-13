@@ -1,0 +1,9 @@
+{% if link.include_photos and e.photos.all %}
+<div class="thumbs">
+  {% for p in e.photos.all %}
+    <a href="{% url 'share_photo' token p.pk 'display' %}" target="_blank" rel="noopener noreferrer">
+      <img src="{% url 'share_photo' token p.pk 'thumb' %}" alt="Photo {{ forloop.counter }} attached to this entry" loading="lazy">
+    </a>
+  {% endfor %}
+</div>
+{% endif %}

@@ -119,3 +119,14 @@ urlpatterns += [
     path("app/reports/site/download/", report_views.report_site_download, name="report_site_download"),
     path("app/reports/portfolio.csv", report_views.report_portfolio_csv, name="report_portfolio_csv"),
 ]
+
+
+from . import share_views  # noqa: E402
+
+urlpatterns += [
+    path("app/sites/<int:pk>/share/", share_views.share_links, name="share_links"),
+    path("app/sites/<int:pk>/share/create/", share_views.share_create, name="share_create"),
+    path("app/sites/<int:pk>/share/<int:lpk>/revoke/", share_views.share_revoke, name="share_revoke"),
+    path("s/<str:token>/", share_views.share_view, name="share_view"),
+    path("s/<str:token>/photos/<int:pk>/<str:variant>/", share_views.share_photo, name="share_photo"),
+]

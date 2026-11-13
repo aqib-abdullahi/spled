@@ -14,6 +14,7 @@
   </div>
   <div class="actions">
     {% if can_edit %}<a class="btn" href="{% url 'site_edit' site.pk %}">Edit site</a>{% endif %}
+    {% if nav_can_share %}<a class="btn" href="{% url 'share_links' site.pk %}">Share</a>{% endif %}
     {% if can_log %}<a class="btn btn-primary" href="{% url 'evidence_new' site.pk %}">+ Log evidence</a>{% endif %}
   </div>
 </div>

@@ -1,0 +1,7 @@
+{% extends "auth_base.html" %}
+{% block title %}Please wait{% endblock %}
+{% block panel %}
+<h1>Too many attempts</h1>
+<p>For everyone’s security we limit how often this can be tried. Please wait a while, then try again.</p>
+<a class="btn btn-dark" href="{% url 'signin' %}">Back to sign in</a>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "app_base.html" %}
+{% block title %}Turn on two-step verification{% endblock %}
+{% block content %}
+<nav class="muted" aria-label="Breadcrumb"><a href="{% url 'account_security' %}">Security</a> / Two-step verification</nav>
+<h1>Turn on two-step verification</h1>
+
+<section class="card stack" aria-label="Add Spled to your app">
+  <h2 style="font-size:20px">1. Add Spled to your authenticator app</h2>
+  <p>Use an app such as Google Authenticator, Microsoft Authenticator or Authy.</p>
+  {% if qr %}
+    <img class="qr" src="{{ qr }}" alt="QR code for your authenticator app. If you can’t scan it, use the setup key below.">
+  {% endif %}
+  <p>On this phone? <a href="{{ uri }}"><b>Open your authenticator app</b></a></p>
+  <p style="margin:0">Or enter this setup key by hand:</p>
+  <p class="mono setupkey">{{ secret }}</p>
+  <small class="muted">Treat this key like a password. Anyone who has it can create your codes.</small>
+</section>
+
+<form method="post" class="card stack" novalidate autocomplete="off">
+  {% csrf_token %}
+  <h2 style="font-size:20px">2. Enter the 6-digit code</h2>
+  <div class="field">
+    <label for="id_code">Code from your app</label>
+    {{ form.code }}
+    {% for error in form.code.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+  </div>
+  <div class="actions">
+    <button class="btn btn-dark" type="submit">Turn on</button>
+    <a class="btn" href="{% url 'account_security' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

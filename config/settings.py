@@ -258,3 +258,9 @@ if not DEBUG:
         TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=1)
     # Deliberately left off: applying HSTS to every subdomain, and browser preload lists.
     SILENCED_SYSTEM_CHECKS = ["security.W005", "security.W021"]
+
+
+INSTALLED_APPS += ["twofactor"]
+
+
+MIDDLEWARE += ["web.timezone_middleware.UserTimezoneMiddleware"]

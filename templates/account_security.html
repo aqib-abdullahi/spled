@@ -1,0 +1,46 @@
+{% extends "app_base.html" %}
+{% block title %}Security{% endblock %}
+{% block content %}
+<div>
+  <h1>Security</h1>
+  <p class="muted" style="margin:6px 0 0">{{ request.user.email }}</p>
+</div>
+
+<section class="card stack" aria-label="Two-step verification">
+  <div class="pagehead">
+    <h2 style="font-size:20px">Two-step verification</h2>
+    {% if enabled %}<span class="vb vb-yes">On</span>{% else %}<span class="vb vb-no">Off</span>{% endif %}
+  </div>
+
+  {% if not enabled %}
+    <p>Protect your account with a code from an authenticator app, as well as your password. Anyone who learns your password still can’t sign in without your phone.</p>
+    <div><a class="btn btn-primary" href="{% url 'twofactor_setup' %}">Turn on two-step verification</a></div>
+  {% else %}
+    <p><b>{{ remaining }} backup code{{ remaining|pluralize }} left.</b> They’re for when you can’t use your phone.</p>
+    {% if low %}<div class="notice" role="status">You’re running low on backup codes. Get new ones below.</div>{% endif %}
+    {% if confirm_error %}<div class="alert" role="alert">{{ confirm_error }}</div>{% endif %}
+
+    <details class="sec"{% if open_section == "codes" %} open{% endif %}>
+      <summary>Get new backup codes</summary>
+      <form method="post" action="{% url 'twofactor_codes' %}" class="stack" novalidate autocomplete="off">
+        {% csrf_token %}
+        <p class="muted">Your old codes stop working. You need your password and a current code.</p>
+        <div class="field"><label for="codes-password">Password</label><input type="password" id="codes-password" name="password" autocomplete="current-password" required></div>
+        <div class="field"><label for="codes-code">Code from your app</label><input id="codes-code" name="code" autocomplete="one-time-code" spellcheck="false" required></div>
+        <div><button class="btn btn-dark" type="submit">Get new codes</button></div>
+      </form>
+    </details>
+
+    <details class="sec"{% if open_section == "disable" %} open{% endif %}>
+      <summary>Turn off two-step verification</summary>
+      <form method="post" action="{% url 'twofactor_disable' %}" class="stack" novalidate autocomplete="off">
+        {% csrf_token %}
+        <p class="muted">This makes your account less safe. You need your password and a current code.</p>
+        <div class="field"><label for="off-password">Password</label><input type="password" id="off-password" name="password" autocomplete="current-password" required></div>
+        <div class="field"><label for="off-code">Code from your app</label><input id="off-code" name="code" autocomplete="one-time-code" spellcheck="false" required></div>
+        <div><button class="btn" type="submit">Turn off</button></div>
+      </form>
+    </details>
+  {% endif %}
+</section>
+{% endblock %}

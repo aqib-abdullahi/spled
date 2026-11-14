@@ -1,0 +1,18 @@
+{% extends "auth_base.html" %}
+{% block title %}Two-step verification{% endblock %}
+{% block panel %}
+<form method="post" class="stack" novalidate autocomplete="off">
+  {% csrf_token %}
+  <div>
+    <h1>Two-step verification</h1>
+    <p class="muted">Open your authenticator app and enter the 6-digit code for Spled. Lost your phone? Enter one of your backup codes instead.</p>
+  </div>
+  {% if error %}<div class="alert" role="alert">{{ error }}</div>{% endif %}
+  <div class="field">
+    <label for="id_code">Code</label>
+    {{ form.code }}
+  </div>
+  <button class="btn btn-primary" type="submit">Verify</button>
+  <a href="{% url 'signin' %}">Cancel and start again</a>
+</form>
+{% endblock %}

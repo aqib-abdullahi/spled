@@ -59,3 +59,17 @@ def client_ip(request):
         if len(parts) >= proxies:
             return parts[-proxies]
     return address
+
+DEFAULT_RULES.update(
+    {
+        "twofactor_user": (5, 15 * 60),  # wrong codes for one account
+        "twofactor_ip": (30, 15 * 60),   # wrong codes from one address
+    }
+)
+
+
+DEFAULT_RULES.update(
+    {
+        "password_user": (5, 15 * 60),  # wrong current passwords for one account
+    }
+)

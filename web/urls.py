@@ -1,4 +1,5 @@
 from django.contrib.auth import views as auth_views
+from .twofactor_views import TwoFactorLoginView
 from django.urls import path
 
 from registry import photo_views
@@ -13,7 +14,7 @@ urlpatterns = [
     path("photos/<int:pk>/<str:variant>/", photo_views.photo_file, name="photo"),
     path(
         "signin/",
-        auth_views.LoginView.as_view(
+        TwoFactorLoginView.as_view(
             template_name="sign_in.html", redirect_authenticated_user=True,
             authentication_form=SignInForm,
         ),
@@ -129,4 +130,24 @@ urlpatterns += [
     path("app/sites/<int:pk>/share/<int:lpk>/revoke/", share_views.share_revoke, name="share_revoke"),
     path("s/<str:token>/", share_views.share_view, name="share_view"),
     path("s/<str:token>/photos/<int:pk>/<str:variant>/", share_views.share_photo, name="share_photo"),
+]
+
+
+from . import twofactor_views  # noqa: E402
+
+urlpatterns += [
+    path("signin/verify/", twofactor_views.verify_signin, name="signin_verify"),
+    path("app/security/", twofactor_views.account_security, name="account_security"),
+    path("app/security/2fa/setup/", twofactor_views.twofactor_setup, name="twofactor_setup"),
+    path("app/security/2fa/disable/", twofactor_views.twofactor_disable, name="twofactor_disable"),
+    path("app/security/2fa/codes/", twofactor_views.twofactor_new_codes, name="twofactor_codes"),
+]
+
+
+from . import profile_views  # noqa: E402
+
+urlpatterns += [
+    path("app/profile/", profile_views.profile_page, name="profile"),
+    path("app/profile/save/", profile_views.profile_save, name="profile_save"),
+    path("app/profile/password/", profile_views.profile_password, name="profile_password"),
 ]

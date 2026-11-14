@@ -1,0 +1,32 @@
+{% extends "app_base.html" %}
+{% block title %}Backup codes{% endblock %}
+{% block content %}
+<h1>{% if first_time %}Two-step verification is on{% else %}Your new backup codes{% endif %}</h1>
+
+<section class="card stack" aria-label="Backup codes">
+  <h2 style="font-size:20px">Save your backup codes</h2>
+  <p>If you lose your phone, each of these codes lets you sign in once. <b>They won’t be shown again.</b> Keep them somewhere safe, such as a password manager.</p>
+  <ul class="codes" id="codes">
+    {% for c in codes %}<li class="mono">{{ c }}</li>{% endfor %}
+  </ul>
+  <div class="actions noprint">
+    <button type="button" class="btn" id="copy-codes">Copy all</button>
+    <button type="button" class="btn" onclick="window.print()">Print</button>
+    <a class="btn btn-dark" href="{% url 'account_security' %}">I’ve saved them</a>
+  </div>
+  <small class="muted noprint" id="copy-status" role="status"></small>
+</section>
+
+<script>
+  document.getElementById("copy-codes").addEventListener("click", function () {
+    var text = Array.prototype.map.call(
+      document.querySelectorAll("#codes li"), function (li) { return li.textContent; }
+    ).join("\n");
+    var status = document.getElementById("copy-status");
+    var done = function () { status.textContent = "Copied."; };
+    var fallback = function () { status.textContent = "Select the codes and press Ctrl+C to copy."; };
+    if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done, fallback); }
+    else { fallback(); }
+  });
+</script>
+{% endblock %}

@@ -1045,3 +1045,36 @@ details.sec summary { cursor: pointer; font-weight: 600; min-height: 44px; displ
 button.chip { font: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
 button.chip[aria-pressed="false"] { background: transparent; color: var(--ink); opacity: .55; }
 button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); opacity: 1; }
+
+/* Step 37c: keep the app bar inside the screen up to 1099px */
+@media (min-width: 801px) and (max-width: 1099px) {
+  .appbar { gap: 12px; }
+  .mainnav { flex: 1 1 auto; min-width: 0; overflow: hidden; justify-content: flex-start; }
+  .mainnav a, .mainnav span { padding: 6px 8px; font-size: 13px; }
+  .desktop-nav .reports-link { display: none; }
+  .menu-panel .reports-link { display: flex; }
+  .usermenu { flex-shrink: 0; }
+  .usermenu .who { display: none; }
+}
+
+/* Step 37d: overview content must never be wider than the screen */
+.overview-main, .overview-aside, .siterow > * { min-width: 0; }
+.overview-grid { grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.9fr); }
+
+/* Wide screens: same row as before, minus the unused last column */
+@media (min-width: 1200px) {
+  .siterow { grid-template-columns: minmax(160px, 2fr) 100px 130px 90px minmax(100px, 1fr); }
+}
+
+/* Mid screens: compact two-column row */
+@media (min-width: 801px) and (max-width: 1199px) {
+  .siterow { grid-template-columns: minmax(0, 1fr) auto; }
+}
+
+@media (max-width: 980px) {
+  .overview-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 800px) {
+  .siterow { grid-template-columns: minmax(0, 1fr); }
+}

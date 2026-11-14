@@ -45,9 +45,29 @@
         <div class="stat attention">
           <div class="stat-label">Needs attention</div>
           <div class="stat-num">{{ attention_count }}</div>
-          <div class="stat-note">delayed, stalled, or no evidence for {{ stale_days }}+ days</div>
+          <div class="stat-note">delayed, stalled, or no evidence for {{ stale_days }}+ days (complete sites excluded)</div>
         </div>
       </section>
+
+      {% if total %}
+      <section class="card attention-list" aria-label="Needs attention">
+        <h2>Needs attention</h2>
+        {% for site in attention_sites %}
+          <div class="attn-row">
+            <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+            <div class="attn-main">
+              <a href="{% url 'site_detail' site.pk %}"><b>{{ site.name }}</b></a>
+              <div class="muted small">{{ site.attention_reason }}</div>
+            </div>
+          </div>
+        {% empty %}
+          <p class="muted">Nothing is flagged right now. Delayed or stalled sites, and sites with no evidence for {{ stale_days }}+ days, appear here.</p>
+        {% endfor %}
+        {% if attention_more %}
+          <p class="muted small">and {{ attention_more }} more. <a href="{% url 'sites' %}"><b>Open the site list</b></a></p>
+        {% endif %}
+      </section>
+      {% endif %}
 
       <section class="card sitelist" aria-label="Sites">
         <h2>Sites</h2>
@@ -91,23 +111,6 @@
           {% if nav_can_review %}<a class="action-pill" href="{% url 'review' %}"><span class="action-label"><i data-lucide="check-check" class="icon icon-sm" aria-hidden="true"></i><span>Review queue</span></span><strong>→</strong></a>{% endif %}
           {% if nav_can_team %}<a class="action-pill" href="{% url 'team' %}"><span class="action-label"><i data-lucide="users" class="icon icon-sm" aria-hidden="true"></i><span>Manage team</span></span><strong>→</strong></a>{% endif %}
         </div>
-      </div>
-
-      <div class="card sidebar-card">
-        <div class="sidebar-label">Priority watch</div>
-        {% for site in sites %}
-          {% if site.needs_attention %}
-            <div class="mini-site">
-              <div>
-                <strong><a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a></strong>
-                <div class="muted small">{{ site.get_status_display }}</div>
-              </div>
-              <span class="badge st-{{ site.status }}">{{ site.progress }}%</span>
-            </div>
-          {% endif %}
-        {% empty %}
-          <p class="muted small">Nothing is flagged right now.</p>
-        {% endfor %}
       </div>
     </aside>
   </div>

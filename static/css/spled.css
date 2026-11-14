@@ -1127,3 +1127,10 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
 .empty-state .icon { width: 28px; height: 28px; color: var(--mint-strong); }
 .empty-state h3 { font-size: 18px; }
 .empty-state p { margin: 0; max-width: 420px; }
+
+/* Step 40c: needs-attention list */
+.attn-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid #e5eee9; }
+.attn-row:first-of-type { border-top: 0; }
+.attn-main { min-width: 0; }
+.attn-main a { overflow-wrap: anywhere; }
+.attention-list h2 { font-size: 20px; margin-bottom: 8px; }

@@ -53,14 +53,38 @@ def overview(request):
                 last_evidence=Max("evidence__created_at", filter=COUNTED)
             ).order_by("name")
         )
+        now = timezone.now()
         attention = 0
+        flagged = []
         for site in sites:
             quiet_since = site.last_evidence or site.created_at
+            # Finished work is expected to go quiet.
+            quiet = quiet_since < cutoff and site.status != Site.Status.COMPLETE
             site.needs_attention = (
-                site.status in (Site.Status.DELAYED, Site.Status.STALLED)
-                or quiet_since < cutoff
+                site.status in (Site.Status.DELAYED, Site.Status.STALLED) or quiet
             )
             attention += site.needs_attention
+            if not site.needs_attention:
+                continue
+            reasons = []
+            rank = 2
+            if site.status == Site.Status.STALLED:
+                rank = 0
+                reasons.append("Stalled")
+            elif site.status == Site.Status.DELAYED:
+                rank = 1
+                reasons.append("Delayed")
+            if quiet:
+                days = (now - quiet_since).days
+                unit = "day" if days == 1 else "days"
+                if site.last_evidence:
+                    reasons.append(f"No evidence for {days} {unit}")
+                else:
+                    reasons.append(f"No evidence yet, added {days} {unit} ago")
+            site.attention_reason = " · ".join(reasons)
+            flagged.append((rank, quiet_since, site.pk, site))
+        flagged.sort(key=lambda row: row[:3])
+        attention_sites = [row[3] for row in flagged]
 
         context.update(
             org=org,
@@ -68,6 +92,8 @@ def overview(request):
             total=len(sites),
             has_any_evidence=any(s.last_evidence for s in sites),
             can_add_site=can(request.user, EDIT_SITES, org),
+            attention_sites=attention_sites[:5],
+            attention_more=max(0, len(attention_sites) - 5),
             attention_count=attention,
             stale_days=org.stale_after_days,
             status_counts=[

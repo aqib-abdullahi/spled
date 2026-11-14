@@ -11,6 +11,7 @@
 </head>
 <body>
 {% block body %}{% endblock %}
+{{ map_config|json_script:"map-config" }}
 <script src="{% static 'vendor/lucide.min.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {

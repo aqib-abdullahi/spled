@@ -84,6 +84,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'web.context_processors.review_nav',
+                'web.map_config.map_config',
             ],
         },
     },
@@ -265,3 +266,20 @@ INSTALLED_APPS += ["twofactor"]
 
 
 MIDDLEWARE += ["web.timezone_middleware.UserTimezoneMiddleware"]
+
+# Step 39: map tiles. Provider-neutral; OpenStreetMap is the development default.
+from config.map_tiles import (  # noqa: E402
+    DEFAULT_ATTRIBUTION,
+    DEFAULT_MAX_ZOOM,
+    DEFAULT_TILE_SIZE,
+    DEFAULT_URL,
+    validate_tile_settings,
+)
+
+MAP_TILE_URL = env("MAP_TILE_URL", default=DEFAULT_URL)
+MAP_TILE_ATTRIBUTION = env("MAP_TILE_ATTRIBUTION", default=DEFAULT_ATTRIBUTION)
+MAP_TILE_MAX_ZOOM = env.int("MAP_TILE_MAX_ZOOM", default=DEFAULT_MAX_ZOOM)
+MAP_TILE_SIZE = env.int("MAP_TILE_SIZE", default=DEFAULT_TILE_SIZE)
+validate_tile_settings(
+    MAP_TILE_URL, MAP_TILE_ATTRIBUTION, MAP_TILE_MAX_ZOOM, MAP_TILE_SIZE, DEBUG
+)

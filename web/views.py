@@ -66,6 +66,8 @@ def overview(request):
             org=org,
             sites=sites,
             total=len(sites),
+            has_any_evidence=any(s.last_evidence for s in sites),
+            can_add_site=can(request.user, EDIT_SITES, org),
             attention_count=attention,
             stale_days=org.stale_after_days,
             status_counts=[

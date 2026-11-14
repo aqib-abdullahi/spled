@@ -10,20 +10,35 @@
     stalled: "#a12b2b",
     complete: "#1f6b3f"
   };
-  var STYLE = {
-    version: 8,
-    sources: {
-      osm: {
-        type: "raster",
-        tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
-        tileSize: 256,
-        maxzoom: 19,
-        attribution:
-          '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-      }
-    },
-    layers: [{ id: "osm", type: "raster", source: "osm" }]
+  var TILE_DEFAULTS = {
+    url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution:
+      '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+    tileSize: 256
   };
+
+  // Tile provider settings come from the page (settings.MAP_TILE_*), with OSM as the fallback.
+  function buildStyle() {
+    var cfg = {};
+    try {
+      var node = document.getElementById("map-config");
+      if (node) { cfg = JSON.parse(node.textContent) || {}; }
+    } catch (err) { cfg = {}; }
+    return {
+      version: 8,
+      sources: {
+        base: {
+          type: "raster",
+          tiles: [cfg.tile_url || TILE_DEFAULTS.url],
+          tileSize: cfg.tile_size || TILE_DEFAULTS.tileSize,
+          maxzoom: cfg.max_zoom || TILE_DEFAULTS.maxZoom,
+          attribution: cfg.attribution || TILE_DEFAULTS.attribution
+        }
+      },
+      layers: [{ id: "base", type: "raster", source: "base" }]
+    };
+  }
 
   function fail(el, message) {
     el.classList.add("mapbox-failed");
@@ -45,12 +60,13 @@
     try {
       var map = new maplibregl.Map({
         container: el,
-        style: STYLE,
+        style: buildStyle(),
         center: options.center || DEFAULT_CENTER,
         zoom: options.zoom || 11,
         cooperativeGestures: !!options.cooperativeGestures
       });
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+
       return map;
     } catch (err) {
       fail(el, "The map couldn’t start in this browser. You can still use the details on this page.");
@@ -321,6 +337,168 @@
     });
   }
 
+  // ---- Clustered projects layer (shared by the public and staff maps) ----
+  function statusColour() {
+    var colour = ["match", ["get", "status"]];
+    Object.keys(COLORS).forEach(function (key) { colour.push(key, COLORS[key]); });
+    colour.push("#5b6b7f");
+    return colour;
+  }
+
+  function textEl(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) { node.className = className; }
+    node.textContent = text;
+    return node;
+  }
+
+  function linkEl(url, text) {
+    var link = document.createElement("a");
+    link.href = url;
+    link.textContent = text;
+    return link;
+  }
+
+  function fitTo(map, features) {
+    if (features.length === 1) {
+      map.jumpTo({ center: features[0].geometry.coordinates, zoom: 13 });
+    } else if (features.length > 1) {
+      var bounds = new maplibregl.LngLatBounds();
+      features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
+      map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
+    }
+  }
+
+  function showPopup(map, e, build) {
+    var seen = {};
+    var list = [];
+    (e.features || []).forEach(function (f) {
+      if (!seen[f.properties.id]) { seen[f.properties.id] = true; list.push(f); }
+    });
+    if (!list.length) { return; }
+    var box;
+    if (list.length === 1) {
+      box = build(list[0].properties);
+    } else {
+      box = document.createElement("div");
+      box.appendChild(textEl("strong", "", list.length + " sites here"));
+      list.forEach(function (f) {
+        var row = document.createElement("div");
+        row.appendChild(linkEl(f.properties.url, f.properties.name));
+        box.appendChild(row);
+      });
+    }
+    new maplibregl.Popup({ maxWidth: "260px" })
+      .setLngLat(list[0].geometry.coordinates.slice())
+      .setDOMContent(box)
+      .addTo(map);
+  }
+
+  function clusteredLayer(map, id, data, build) {
+    var clusterLayer = id + "-clusters";
+    var pointLayer = id + "-points";
+    var labels = {};
+
+    map.addSource(id, {
+      type: "geojson", data: data,
+      cluster: true, clusterRadius: 50, clusterMaxZoom: 14
+    });
+    map.addLayer({
+      id: clusterLayer, type: "circle", source: id,
+      filter: ["has", "point_count"],
+      paint: {
+        "circle-color": "#0e2a24",
+        "circle-radius": ["step", ["get", "point_count"], 16, 10, 20, 50, 26, 200, 32],
+        "circle-stroke-width": 3,
+        "circle-stroke-color": "#3ddbb0"
+      }
+    });
+    map.addLayer({
+      id: pointLayer, type: "circle", source: id,
+      filter: ["!", ["has", "point_count"]],
+      paint: {
+        "circle-radius": 9,
+        "circle-color": statusColour(),
+        "circle-stroke-width": 2,
+        "circle-stroke-color": "#ffffff"
+      }
+    });
+
+    // Counts are page elements, not map text: the map style has no font server.
+    function clearLabels() {
+      Object.keys(labels).forEach(function (key) { labels[key].remove(); });
+      labels = {};
+    }
+    function syncLabels() {
+      if (!map.getSource(id) || !map.getLayer(clusterLayer)) { return; }
+      // Only clusters that are actually drawn, one label per cluster id.
+      var seen = {};
+      map.queryRenderedFeatures({ layers: [clusterLayer] }).forEach(function (f) {
+        var key = String(f.properties.cluster_id);
+        if (seen[key]) { return; }
+        seen[key] = true;
+        var text = String(f.properties.point_count_abbreviated);
+        if (labels[key]) {
+          labels[key].getElement().textContent = text;
+          labels[key].setLngLat(f.geometry.coordinates);
+        } else {
+          var node = textEl("div", "cluster-count", text);
+          labels[key] = new maplibregl.Marker({ element: node })
+            .setLngLat(f.geometry.coordinates)
+            .addTo(map);
+        }
+      });
+      Object.keys(labels).forEach(function (key) {
+        if (!seen[key]) { labels[key].remove(); delete labels[key]; }
+      });
+    }
+    ["sourcedata", "moveend", "zoomend", "idle"].forEach(function (name) {
+      map.on(name, syncLabels);
+    });
+
+    map.on("click", clusterLayer, function (e) {
+      var f = e.features && e.features[0];
+      if (!f) { return; }
+      map.getSource(id).getClusterExpansionZoom(f.properties.cluster_id)
+        .then(function (zoom) {
+          map.easeTo({ center: f.geometry.coordinates, zoom: zoom });
+        })
+        .catch(function () {});
+    });
+    map.on("click", pointLayer, function (e) { showPopup(map, e, build); });
+
+    [clusterLayer, pointLayer].forEach(function (layerId) {
+      map.on("mouseenter", layerId, function () { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", layerId, function () { map.getCanvas().style.cursor = ""; });
+    });
+
+    return {
+      setData: function (next) {
+        clearLabels();
+        map.getSource(id).setData(next);
+      }
+    };
+  }
+
+  function publicPopup(p) {
+    var box = document.createElement("div");
+    box.appendChild(textEl("strong", "", p.name));
+    box.appendChild(textEl("div", "", p.status_label + " · " + p.progress + "%"));
+    box.appendChild(textEl("div", "muted", p.kind + " · " + p.organisation));
+    box.appendChild(linkEl(p.url, "Open project"));
+    return box;
+  }
+
+  function staffPopup(p) {
+    var published = p.is_public === true || p.is_public === "true";
+    var box = document.createElement("div");
+    box.appendChild(textEl("strong", "", p.name));
+    box.appendChild(textEl("div", "", p.status_label + " · " + p.progress + "%"));
+    box.appendChild(textEl("div", "muted", p.kind + (published ? " · published" : " · not published")));
+    box.appendChild(linkEl(p.url, "Open site"));
+    return box;
+  }
+
   // ---- Public map: all published projects ----
   function initPublicMap(el) {
     var note = el.parentNode.querySelector(".mapstatus");
@@ -329,59 +507,11 @@
     var map = createMap(el, { center: DEFAULT_CENTER, zoom: 9 });
     if (!map) { return; }
 
-    var colour = ["match", ["get", "status"]];
-    Object.keys(COLORS).forEach(function (key) { colour.push(key, COLORS[key]); });
-    colour.push("#5b6b7f");
-
     function add(data) {
-      map.addSource("projects", { type: "geojson", data: data });
-      map.addLayer({
-        id: "projects", type: "circle", source: "projects",
-        paint: {
-          "circle-radius": 9,
-          "circle-color": colour,
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff"
-        }
-      });
-
       var features = data.features || [];
-      if (features.length === 1) {
-        map.jumpTo({ center: features[0].geometry.coordinates, zoom: 13 });
-      } else if (features.length > 1) {
-        var bounds = new maplibregl.LngLatBounds();
-        features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
-        map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
-      } else {
-        say("No projects have been published yet.");
-      }
-
-      map.on("mouseenter", "projects", function () { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "projects", function () { map.getCanvas().style.cursor = ""; });
-      map.on("click", "projects", function (e) {
-        var f = e.features && e.features[0];
-        if (!f) { return; }
-        var p = f.properties;
-        var box = document.createElement("div");
-        var title = document.createElement("strong");
-        title.textContent = p.name;
-        var line1 = document.createElement("div");
-        line1.textContent = p.status_label + " · " + p.progress + "%";
-        var line2 = document.createElement("div");
-        line2.className = "muted";
-        line2.textContent = p.kind + " · " + p.organisation;
-        var link = document.createElement("a");
-        link.href = p.url;
-        link.textContent = "Open project";
-        box.appendChild(title);
-        box.appendChild(line1);
-        box.appendChild(line2);
-        box.appendChild(link);
-        new maplibregl.Popup({ maxWidth: "260px" })
-          .setLngLat(f.geometry.coordinates.slice())
-          .setDOMContent(box)
-          .addTo(map);
-      });
+      clusteredLayer(map, "projects", data, publicPopup);
+      fitTo(map, features);
+      if (!features.length) { say("No projects have been published yet."); }
     }
 
     fetch(el.dataset.url, { headers: { Accept: "application/json" } })
@@ -408,24 +538,21 @@
     chips.forEach(function (chip) { shown[chip.dataset.mapFilter] = true; });
 
     var map = createMap(el, { center: DEFAULT_CENTER, zoom: 9 });
-    var ready = false;
+    var layer = null;
+    var all = [];
 
-    function visibleList() {
-      return Object.keys(shown).filter(function (k) { return shown[k]; });
-    }
     function apply() {
-      var list = visibleList();
       var count = 0;
       rows.forEach(function (row) {
         var on = !!shown[row.dataset.status];
         row.hidden = !on;
         if (on) { count += 1; }
       });
-      if (map && ready) {
-        map.setFilter(
-          "sites",
-          list.length ? ["in", ["get", "status"], ["literal", list]] : ["==", ["get", "status"], ""]
-        );
+      if (layer) {
+        layer.setData({
+          type: "FeatureCollection",
+          features: all.filter(function (f) { return shown[f.properties.status]; })
+        });
       }
       say(count + " of " + rows.length + " site" + (rows.length === 1 ? "" : "s") + " shown");
     }
@@ -441,59 +568,11 @@
 
     if (!map) { apply(); return; }
 
-    var colour = ["match", ["get", "status"]];
-    Object.keys(COLORS).forEach(function (key) { colour.push(key, COLORS[key]); });
-    colour.push("#5b6b7f");
-
     function add(data) {
-      map.addSource("sites", { type: "geojson", data: data });
-      map.addLayer({
-        id: "sites", type: "circle", source: "sites",
-        paint: {
-          "circle-radius": 9,
-          "circle-color": colour,
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff"
-        }
-      });
-      ready = true;
-
-      var features = data.features || [];
-      if (features.length === 1) {
-        map.jumpTo({ center: features[0].geometry.coordinates, zoom: 13 });
-      } else if (features.length > 1) {
-        var bounds = new maplibregl.LngLatBounds();
-        features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
-        map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
-      }
+      all = data.features || [];
+      layer = clusteredLayer(map, "sites", { type: "FeatureCollection", features: all }, staffPopup);
+      fitTo(map, all);
       apply();
-
-      map.on("mouseenter", "sites", function () { map.getCanvas().style.cursor = "pointer"; });
-      map.on("mouseleave", "sites", function () { map.getCanvas().style.cursor = ""; });
-      map.on("click", "sites", function (e) {
-        var f = e.features && e.features[0];
-        if (!f) { return; }
-        var p = f.properties;
-        var box = document.createElement("div");
-        var title = document.createElement("strong");
-        title.textContent = p.name;
-        var line1 = document.createElement("div");
-        line1.textContent = p.status_label + " · " + p.progress + "%";
-        var line2 = document.createElement("div");
-        line2.className = "muted";
-        line2.textContent = p.kind + (p.is_public === true || p.is_public === "true" ? " · published" : " · not published");
-        var link = document.createElement("a");
-        link.href = p.url;
-        link.textContent = "Open site";
-        box.appendChild(title);
-        box.appendChild(line1);
-        box.appendChild(line2);
-        box.appendChild(link);
-        new maplibregl.Popup({ maxWidth: "260px" })
-          .setLngLat(f.geometry.coordinates.slice())
-          .setDOMContent(box)
-          .addTo(map);
-      });
     }
 
     apply();

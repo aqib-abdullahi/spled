@@ -1078,3 +1078,52 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
 @media (max-width: 800px) {
   .siterow { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Step 38: cluster counts drawn over the map */
+.cluster-count {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: 13px; pointer-events: none;
+}
+
+/* Step 40a: mobile drawer rows (overrides the tab-bar rules that .mainnav applies) */
+.mobile-nav.mainnav { gap: 2px; justify-content: flex-start; }
+.mobile-nav.mainnav > a {
+  flex: 0 0 auto; display: block; padding: 0; border-radius: 10px;
+  border: 0; background: transparent; font-size: 15px; justify-content: flex-start;
+}
+.mobile-nav.mainnav > a .nav-link {
+  display: flex; width: 100%; align-items: center; gap: 12px;
+  padding: 11px 12px; border: 0; background: none; border-radius: 10px;
+  font-size: 15px; justify-content: flex-start;
+}
+.mobile-nav.mainnav > a .nav-link span { padding: 0; border: 0; background: none; flex: 0 1 auto; }
+.mobile-nav.mainnav > a .icon { width: 18px; height: 18px; }
+.mobile-nav.mainnav > a:hover { background: rgba(255,255,255,0.06); }
+.mobile-nav.mainnav > a[aria-current="page"] {
+  background: rgba(45, 212, 165, 0.1); border: 0; box-shadow: inset 3px 0 0 var(--mint);
+  color: #fff;
+}
+.mobile-nav.mainnav > a[aria-current="page"] .nav-link { font-weight: 700; }
+.mobile-nav.mainnav .count {
+  position: static; margin: 0 0 0 auto; box-shadow: none;
+  min-width: 20px; height: 20px; padding: 0 6px; font-size: 11px;
+}
+
+/* Step 40a2: drawer rows left-aligned, a little more air */
+.mobile-nav.mainnav { gap: 6px; align-items: stretch; text-align: left; }
+.mobile-nav.mainnav > a { width: 100%; text-align: left; justify-content: flex-start; }
+.mobile-nav.mainnav > a .nav-link {
+  justify-content: flex-start; text-align: left; gap: 14px; padding: 12px 14px;
+}
+.mobile-nav.mainnav > a .nav-link > span:not(.count) {
+  flex: 0 1 auto; justify-content: flex-start; text-align: left;
+}
+
+/* Step 40b: empty states */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 10px; padding: 28px 16px;
+}
+.empty-state .icon { width: 28px; height: 28px; color: var(--mint-strong); }
+.empty-state h3 { font-size: 18px; }
+.empty-state p { margin: 0; max-width: 420px; }

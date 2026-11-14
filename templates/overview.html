@@ -29,6 +29,12 @@
         </div>
       {% endif %}
 
+      {% if total and not has_any_evidence %}
+        <div class="notice" role="status">
+          <b>Nothing has been logged on any site yet.</b> Sites count as quiet until someone logs dated, located evidence on them. Open a site to log the first entry.
+        </div>
+      {% endif %}
+
       <section class="stats" aria-label="Status summary">
         {% for s in status_counts %}
           <div class="stat">
@@ -63,7 +69,16 @@
             {% if site.needs_attention %}<span class="tag-attention">Needs attention</span>{% endif %}
           </div>
         {% empty %}
-          <p class="muted">No sites yet. Add the first one from the admin for now.</p>
+          <div class="empty-state">
+            <i data-lucide="map-pin" class="icon" aria-hidden="true"></i>
+            <h3>No sites yet</h3>
+            <p class="muted">A site is a place where work happens. Each one gets a status backed by dated, located evidence.</p>
+            {% if can_add_site %}
+              <a class="btn btn-primary" href="{% url 'site_new' %}">Add your first site</a>
+            {% else %}
+              <p class="muted">Ask an admin or editor in {{ org.name }} to add the first site.</p>
+            {% endif %}
+          </div>
         {% endfor %}
       </section>
     </div>

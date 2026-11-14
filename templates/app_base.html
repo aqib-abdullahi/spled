@@ -13,6 +13,7 @@
   <nav class="mainnav desktop-nav" aria-label="Main">
     <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
     <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map" class="icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
+    <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
     {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="check-check" class="icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
     {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="file-text" class="icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
   </nav>
@@ -52,6 +53,7 @@
   <a href="{% url 'profile' %}"><span class="nav-link"><i data-lucide="user" class="icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
   <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
   <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map" class="icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
+  <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
   {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="check-check" class="icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
   {% if nav_can_export %}<a href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="file-text" class="icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
   <a href="{% url 'account_security' %}"{% if active == 'security' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="shield" class="icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>

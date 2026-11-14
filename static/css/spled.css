@@ -1040,3 +1040,8 @@ select {
 }
 details.sec { border-top: 1px solid var(--rule); padding-top: 8px; }
 details.sec summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }
+
+/* Step 37: filter chips that are buttons */
+button.chip { font: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+button.chip[aria-pressed="false"] { background: transparent; color: var(--ink); opacity: .55; }
+button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); opacity: 1; }

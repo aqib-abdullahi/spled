@@ -1,0 +1,49 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Map{% endblock %}
+{% block content %}
+<div>
+  <h1>Map</h1>
+  <p class="muted" style="margin:6px 0 0">
+    {% if org %}All active sites of {{ org.name }}, including unpublished ones. Only your team can see this page.{% else %}You are not a member of an organisation yet.{% endif %}
+  </p>
+</div>
+
+{% if org %}
+<div class="chips" role="group" aria-label="Filter by status">
+  {% for s in status_counts %}
+    <button type="button" class="chip" data-map-filter="{{ s.key }}" aria-pressed="true">
+      <span class="dot st-{{ s.key }}"></span>{{ s.label }} ({{ s.count }})
+    </button>
+  {% endfor %}
+</div>
+
+<div>
+  <div class="mapbox mapbox-tall" id="staff-map" data-staff-map
+       data-url="{% url 'staff_map_data' %}"
+       role="region" aria-label="Map of your organisation's sites"></div>
+  <p class="muted mapstatus" role="status" style="margin:8px 0 0"></p>
+</div>
+
+{% if truncated %}
+  <p class="muted">Showing the first {{ map_limit }} sites by name.</p>
+{% endif %}
+
+<section class="card" aria-label="All sites">
+  <h2 style="font-size:20px;margin-bottom:8px">All sites</h2>
+  {% for p in sites %}
+    <div class="mrow" data-site-row data-status="{{ p.status }}">
+      <span class="badge st-{{ p.status }}">{{ p.get_status_display }}</span>
+      <a href="{% url 'site_detail' p.pk %}"><b>{{ p.name }}</b></a>
+      <span class="muted">{{ p.progress }}%{% if not p.is_public %} · not published{% endif %}</span>
+    </div>
+  {% empty %}
+    <p class="muted">No active sites yet.</p>
+  {% endfor %}
+</section>
+
+<link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">
+<script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+<script src="{% static 'js/spled-map.js' %}"></script>
+{% endif %}
+{% endblock %}

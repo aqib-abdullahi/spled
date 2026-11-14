@@ -151,3 +151,11 @@ urlpatterns += [
     path("app/profile/save/", profile_views.profile_save, name="profile_save"),
     path("app/profile/password/", profile_views.profile_password, name="profile_password"),
 ]
+
+# Step 37: staff-wide map
+from . import staff_map_views  # noqa: E402
+
+urlpatterns += [
+    path("app/map/", staff_map_views.staff_map, name="staff_map"),
+    path("app/map/data/", staff_map_views.staff_map_data, name="staff_map_data"),
+]

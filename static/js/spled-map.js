@@ -1,303 +1,3 @@
-// (function () {
-//   const MAP_STYLE = 'https://demotiles.maplibre.org/style.json';
-//   const STATUS_COLORS = {
-//     planned: '#b9b9c4',
-//     in_progress: '#4a90e2',
-//     delayed: '#f4b554',
-//     stalled: '#d75d5d',
-//     complete: '#4aa76d',
-//   };
-
-//   function safeJsonParse(value) {
-//     if (!value) return null;
-//     try {
-//       return JSON.parse(value);
-//     } catch (error) {
-//       return null;
-//     }
-//   }
-
-//   function statusColor(status) {
-//     return STATUS_COLORS[status] || '#4a90e2';
-//   }
-
-//   function makePopup(feature) {
-//     const props = feature.properties || {};
-//     const title = props.name || 'Project';
-//     const org = props.organisation || '';
-//     const statusLabel = props.status_label || '';
-//     const url = props.url || '';
-//     const detail = org ? '<div>' + org + '</div>' : '';
-//     const link = url ? '<div style="margin-top:6px"><a href="' + url + '" target="_self">Open project</a></div>' : '';
-//     return '<div style="font-family:inherit;max-width:220px"><strong>' + title + '</strong>' +
-//       '<div style="margin-top:4px; color:#4b5563;">' + statusLabel + '</div>' +
-//       detail +
-//       link +
-//       '</div>';
-//   }
-
-//   function fitMapToBounds(map, features) {
-//     if (!features || features.length === 0) return;
-//     const bounds = new maplibregl.LngLatBounds();
-//     for (const feature of features) {
-//       if (!feature || !feature.geometry) continue;
-//       if (feature.geometry.type === 'Point') {
-//         bounds.extend(feature.geometry.coordinates);
-//       } else if (feature.geometry.type === 'Polygon' || feature.geometry.type === 'MultiPolygon') {
-//         const coords = feature.geometry.coordinates;
-//         const flatten = (value) => Array.isArray(value) ? value.flat(Infinity) : [];
-//         const numbers = flatten(coords);
-//         for (let idx = 0; idx + 1 < numbers.length; idx += 2) {
-//           bounds.extend([numbers[idx], numbers[idx + 1]]);
-//         }
-//       }
-//     }
-//     if (bounds._ne && !Number.isNaN(bounds._ne.lng)) {
-//       map.fitBounds(bounds, { padding: 30, maxZoom: 13, duration: 0 });
-//     }
-//   }
-
-//   function buildPublicLayers(map, sourceId) {
-//     map.addSource(sourceId, {
-//       type: 'geojson',
-//       data: sourceId === 'public-map-source' ? { type: 'FeatureCollection', features: [] } : { type: 'FeatureCollection', features: [] },
-//     });
-
-//     map.addLayer({
-//       id: sourceId + '-layer',
-//       type: 'circle',
-//       source: sourceId,
-//       paint: {
-//         'circle-radius': 8,
-//         'circle-color': [
-//           'match',
-//           ['get', 'status'],
-//           'planned', STATUS_COLORS.planned,
-//           'in_progress', STATUS_COLORS.in_progress,
-//           'delayed', STATUS_COLORS.delayed,
-//           'stalled', STATUS_COLORS.stalled,
-//           'complete', STATUS_COLORS.complete,
-//           '#4a90e2'
-//         ],
-//         'circle-stroke-color': '#ffffff',
-//         'circle-stroke-width': 2,
-//       },
-//     });
-
-//     map.on('click', sourceId + '-layer', (event) => {
-//       const feature = event.features && event.features[0];
-//       if (!feature) return;
-//       const popup = new maplibregl.Popup({ closeButton: true, closeOnClick: false })
-//         .setLngLat(feature.geometry.coordinates)
-//         .setHTML(makePopup(feature))
-//         .addTo(map);
-//       popup._content.innerHTML = popup._content.innerHTML;
-//     });
-
-//     map.on('mouseenter', sourceId + '-layer', () => {
-//       map.getCanvas().style.cursor = 'pointer';
-//     });
-//     map.on('mouseleave', sourceId + '-layer', () => {
-//       map.getCanvas().style.cursor = '';
-//     });
-//   }
-
-//   function initPublicMap(element) {
-//     const url = element.dataset.url;
-//     const map = new maplibregl.Map({
-//       container: element,
-//       style: MAP_STYLE,
-//       center: [-2.5, 54.0],
-//       zoom: 5.2,
-//       attributionControl: true,
-//     });
-
-//     map.addControl(new maplibregl.NavigationControl(), 'top-right');
-//     map.on('load', () => {
-//       const sourceId = 'public-map-source';
-//       const layerId = sourceId + '-layer';
-//       map.addSource(sourceId, { type: 'geojson', data: url });
-//       map.addLayer({
-//         id: layerId,
-//         type: 'circle',
-//         source: sourceId,
-//         paint: {
-//           'circle-radius': 8,
-//           'circle-color': [
-//             'match',
-//             ['get', 'status'],
-//             'planned', STATUS_COLORS.planned,
-//             'in_progress', STATUS_COLORS.in_progress,
-//             'delayed', STATUS_COLORS.delayed,
-//             'stalled', STATUS_COLORS.stalled,
-//             'complete', STATUS_COLORS.complete,
-//             '#4a90e2'
-//           ],
-//           'circle-stroke-color': '#ffffff',
-//           'circle-stroke-width': 2,
-//         },
-//       });
-
-//       map.on('click', layerId, (event) => {
-//         const feature = event.features && event.features[0];
-//         if (!feature) return;
-//         new maplibregl.Popup({ closeButton: true, closeOnClick: false })
-//           .setLngLat(feature.geometry.coordinates)
-//           .setHTML(makePopup(feature))
-//           .addTo(map);
-//       });
-
-//       map.on('mouseenter', layerId, () => {
-//         map.getCanvas().style.cursor = 'pointer';
-//       });
-//       map.on('mouseleave', layerId, () => {
-//         map.getCanvas().style.cursor = '';
-//       });
-
-//       fetch(url)
-//         .then((response) => response.json())
-//         .then((geojson) => {
-//           map.getSource(sourceId).setData(geojson);
-//           fitMapToBounds(map, geojson.features || []);
-//           const status = document.querySelector('.mapstatus');
-//           if (status) {
-//             status.textContent = (geojson.features || []).length + ' project' + ((geojson.features || []).length === 1 ? '' : 's') + ' shown';
-//           }
-//         })
-//         .catch(() => {
-//           if (element) {
-//             element.classList.add('mapbox-failed');
-//             element.textContent = 'Map data is unavailable right now.';
-//           }
-//         });
-//     });
-//   }
-
-//   function initSiteMap(element) {
-//     const lat = parseFloat(element.dataset.lat || '0');
-//     const lon = parseFloat(element.dataset.lon || '0');
-//     const boundary = safeJsonParse(element.dataset.boundary || '');
-//     const map = new maplibregl.Map({
-//       container: element,
-//       style: MAP_STYLE,
-//       center: [lon, lat],
-//       zoom: 11,
-//       attributionControl: true,
-//     });
-
-//     map.addControl(new maplibregl.NavigationControl(), 'top-right');
-//     map.on('load', () => {
-//       const siteSourceId = 'site-map-source';
-//       map.addSource(siteSourceId, {
-//         type: 'geojson',
-//         data: {
-//           type: 'FeatureCollection',
-//           features: [
-//             {
-//               type: 'Feature',
-//               properties: { status: element.dataset.status || 'in_progress' },
-//               geometry: {
-//                 type: 'Point',
-//                 coordinates: [lon, lat],
-//               },
-//             },
-//           ],
-//         },
-//       });
-//       map.addLayer({
-//         id: 'site-map-point',
-//         type: 'circle',
-//         source: siteSourceId,
-//         paint: {
-//           'circle-radius': 10,
-//           'circle-color': statusColor(element.dataset.status || 'in_progress'),
-//           'circle-stroke-color': '#ffffff',
-//           'circle-stroke-width': 2,
-//         },
-//       });
-
-//       if (boundary) {
-//         map.addSource('site-boundary', { type: 'geojson', data: boundary });
-//         map.addLayer({
-//           id: 'site-boundary-fill',
-//           type: 'fill',
-//           source: 'site-boundary',
-//           paint: {
-//             'fill-color': '#5fa8ff',
-//             'fill-opacity': 0.18,
-//           },
-//         });
-//         map.addLayer({
-//           id: 'site-boundary-line',
-//           type: 'line',
-//           source: 'site-boundary',
-//           paint: {
-//             'line-color': '#5fa8ff',
-//             'line-width': 2,
-//           },
-//         });
-//         fitMapToBounds(map, boundary.features || [boundary]);
-//       } else {
-//         map.setZoom(11);
-//       }
-//     });
-//   }
-
-//   function initPinPicker(element) {
-//     const latInput = document.getElementById(element.dataset.latInput || 'id_latitude');
-//     const lonInput = document.getElementById(element.dataset.lonInput || 'id_longitude');
-//     if (!latInput || !lonInput) return;
-
-//     const defaultLat = parseFloat(latInput.value || '51.5');
-//     const defaultLon = parseFloat(lonInput.value || '-0.13');
-//     const map = new maplibregl.Map({
-//       container: element,
-//       style: MAP_STYLE,
-//       center: [defaultLon, defaultLat],
-//       zoom: 10,
-//       attributionControl: true,
-//     });
-
-//     map.addControl(new maplibregl.NavigationControl(), 'top-right');
-//     const marker = new maplibregl.Marker({ draggable: true }).setLngLat([defaultLon, defaultLat]).addTo(map);
-
-//     const updateInputs = () => {
-//       const coords = marker.getLngLat();
-//       latInput.value = Number(coords.lat).toFixed(6);
-//       lonInput.value = Number(coords.lng).toFixed(6);
-//     };
-
-//     map.on('load', () => {
-//       marker.on('dragend', updateInputs);
-//       map.on('click', (event) => {
-//         marker.setLngLat(event.lngLat).addTo(map);
-//         updateInputs();
-//       });
-//     });
-//   }
-
-//   function bootMaps() {
-//     if (!window.maplibregl) return;
-//     const elements = document.querySelectorAll('[data-public-map], [data-site-map], [data-pin-picker]');
-//     elements.forEach((element) => {
-//       if (element.dataset.mapReady === 'true') return;
-//       element.dataset.mapReady = 'true';
-//       if (element.hasAttribute('data-public-map')) {
-//         initPublicMap(element);
-//       } else if (element.hasAttribute('data-site-map')) {
-//         initSiteMap(element);
-//       } else if (element.hasAttribute('data-pin-picker')) {
-//         initPinPicker(element);
-//       }
-//     });
-//   }
-
-//   if (document.readyState === 'loading') {
-//     document.addEventListener('DOMContentLoaded', bootMaps);
-//   } else {
-//     bootMaps();
-//   }
-// })();
 (function () {
   "use strict";
 
@@ -697,10 +397,124 @@
       });
   }
 
+  // ---- Staff map: the organisation's own sites, with status filters ----
+  function initStaffMap(el) {
+    var note = el.parentNode.querySelector(".mapstatus");
+    function say(text) { if (note) { note.textContent = text; } }
+
+    var chips = document.querySelectorAll("[data-map-filter]");
+    var rows = document.querySelectorAll("[data-site-row]");
+    var shown = {};
+    chips.forEach(function (chip) { shown[chip.dataset.mapFilter] = true; });
+
+    var map = createMap(el, { center: DEFAULT_CENTER, zoom: 9 });
+    var ready = false;
+
+    function visibleList() {
+      return Object.keys(shown).filter(function (k) { return shown[k]; });
+    }
+    function apply() {
+      var list = visibleList();
+      var count = 0;
+      rows.forEach(function (row) {
+        var on = !!shown[row.dataset.status];
+        row.hidden = !on;
+        if (on) { count += 1; }
+      });
+      if (map && ready) {
+        map.setFilter(
+          "sites",
+          list.length ? ["in", ["get", "status"], ["literal", list]] : ["==", ["get", "status"], ""]
+        );
+      }
+      say(count + " of " + rows.length + " site" + (rows.length === 1 ? "" : "s") + " shown");
+    }
+
+    chips.forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        var key = chip.dataset.mapFilter;
+        shown[key] = !shown[key];
+        chip.setAttribute("aria-pressed", String(shown[key]));
+        apply();
+      });
+    });
+
+    if (!map) { apply(); return; }
+
+    var colour = ["match", ["get", "status"]];
+    Object.keys(COLORS).forEach(function (key) { colour.push(key, COLORS[key]); });
+    colour.push("#5b6b7f");
+
+    function add(data) {
+      map.addSource("sites", { type: "geojson", data: data });
+      map.addLayer({
+        id: "sites", type: "circle", source: "sites",
+        paint: {
+          "circle-radius": 9,
+          "circle-color": colour,
+          "circle-stroke-width": 2,
+          "circle-stroke-color": "#ffffff"
+        }
+      });
+      ready = true;
+
+      var features = data.features || [];
+      if (features.length === 1) {
+        map.jumpTo({ center: features[0].geometry.coordinates, zoom: 13 });
+      } else if (features.length > 1) {
+        var bounds = new maplibregl.LngLatBounds();
+        features.forEach(function (f) { bounds.extend(f.geometry.coordinates); });
+        map.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 0 });
+      }
+      apply();
+
+      map.on("mouseenter", "sites", function () { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", "sites", function () { map.getCanvas().style.cursor = ""; });
+      map.on("click", "sites", function (e) {
+        var f = e.features && e.features[0];
+        if (!f) { return; }
+        var p = f.properties;
+        var box = document.createElement("div");
+        var title = document.createElement("strong");
+        title.textContent = p.name;
+        var line1 = document.createElement("div");
+        line1.textContent = p.status_label + " · " + p.progress + "%";
+        var line2 = document.createElement("div");
+        line2.className = "muted";
+        line2.textContent = p.kind + (p.is_public === true || p.is_public === "true" ? " · published" : " · not published");
+        var link = document.createElement("a");
+        link.href = p.url;
+        link.textContent = "Open site";
+        box.appendChild(title);
+        box.appendChild(line1);
+        box.appendChild(line2);
+        box.appendChild(link);
+        new maplibregl.Popup({ maxWidth: "260px" })
+          .setLngLat(f.geometry.coordinates.slice())
+          .setDOMContent(box)
+          .addTo(map);
+      });
+    }
+
+    apply();
+    fetch(el.dataset.url, { headers: { Accept: "application/json" }, credentials: "same-origin" })
+      .then(function (r) {
+        if (!r.ok) { throw new Error("bad response"); }
+        return r.json();
+      })
+      .then(function (data) {
+        if (map.isStyleLoaded()) { add(data); } else { map.once("load", function () { add(data); }); }
+      })
+      .catch(function () {
+        say("The sites couldn’t be loaded onto the map. The list below still works.");
+      });
+  }
+
   function init() {
     document.querySelectorAll("[data-pin-picker]").forEach(initPinPicker);
     document.querySelectorAll("[data-site-map]").forEach(initSiteMap);
     document.querySelectorAll("[data-public-map]").forEach(initPublicMap);
+    document.querySelectorAll("[data-staff-map]").forEach(initStaffMap);
   }
 
   if (document.readyState === "loading") {

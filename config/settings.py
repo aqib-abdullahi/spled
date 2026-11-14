@@ -31,8 +31,9 @@ DEBUG = env.bool("DEBUG", default=True)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
-CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://boots-subtext-mossy.ngrok-free.dev", "https://127.0.0.1"])
+# CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://boots-subtext-mossy.ngrok-free.dev", "https://127.0.0.1"])
 # CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ["https://boots-subtext-mossy.ngrok-free.dev", "https://127.0.0.1"]
 
 
 import mimetypes

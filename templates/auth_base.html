@@ -9,11 +9,15 @@
     <div>
       <h2>Evidence,<br>not claims.</h2>
       <p>A shared record of what is really happening on your sites, wherever you are.</p>
-      <a class="auth-back" href="{% url 'home' %}">← Back to the public site</a>
     </div>
-    <div class="accent">spled</div>
+    <div class="mono accent">{% block accent %}spled{% endblock %}</div>
   </div>
   <main class="split-main">
+    <a class="auth-public-link" href="{% url 'home' %}">← Public site</a>
+    <div class="auth-mobile-brand">
+      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+      Spled
+    </div>
     <div class="stack" style="max-width:400px;width:100%">
       {% block panel %}{% endblock %}
     </div>

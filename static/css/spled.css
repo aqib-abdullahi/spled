@@ -1194,3 +1194,31 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
 @media (max-width: 800px) {
   .pub-actions, .appbar .pubtag { display: none; }
 }
+
+/* Step 46b: laptop layout as it was, plus a small link back to the public site */
+.split-main { position: relative; }
+.auth-public-link {
+  position: absolute; top: 20px; right: 28px; font-weight: 600; font-size: 14px;
+  padding: 8px 12px; border: 1px solid var(--rule); border-radius: 10px;
+  color: var(--ink); background: rgba(255,255,255,0.7);
+}
+.auth-public-link:hover { background: var(--mint-tint); }
+@media (max-width: 800px) {
+  .auth-public-link { top: 14px; right: 16px; }
+  .split-main { padding-top: 64px; }
+}
+
+/* Step 46c: mobile sign-in pages are a light page with a centred logo, no dark block */
+.auth-mobile-brand { display: none; }
+@media (max-width: 800px) {
+  .split.auth-layout .split-side { display: none; }
+  .split.auth-layout .split-main { padding: 56px 20px 48px; justify-content: flex-start; }
+  .auth-mobile-brand {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-size: 24px; font-weight: 800; color: var(--ink); margin-bottom: 28px;
+  }
+  .auth-public-link {
+    border-color: transparent; background: none; padding: 8px 4px;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+}

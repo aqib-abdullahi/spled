@@ -1,47 +1,30 @@
-{% extends "base.html" %}
+{% extends "auth_base.html" %}
 {% block title %}Sign in{% endblock %}
-{% block body %}
-<div class="split auth-layout">
-  <div class="split-side">
-    <div class="brand">
-      <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
-      Spled
-    </div>
-    <div>
-      <h2>Evidence,<br>not claims.</h2>
-      <p>A shared record of what is really happening on your sites, wherever you are.</p>
-      <a class="auth-back" href="{% url 'home' %}">← Back to the public site</a>
-    </div>
-    <div class="mono accent">09.0765° N · 7.3986° E</div>
+{% block accent %}09.0765° N · 7.3986° E{% endblock %}
+{% block panel %}
+<form method="post" class="stack" novalidate>
+  {% csrf_token %}
+  {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+  <div>
+    <h1>Sign in</h1>
+    <p class="muted">Agency and developer teams only.</p>
   </div>
-
-  <main class="split-main">
-    <form method="post" class="stack" novalidate>
-      {% csrf_token %}
-      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-      <div>
-        <h1>Sign in</h1>
-        <p class="muted">Agency and developer teams only.</p>
-      </div>
-      {% for error in form.non_field_errors %}
-        <div class="alert" role="alert">{{ error }}</div>
-      {% endfor %}
-      <div class="field">
-        <label for="id_username">Work email</label>
-        <input type="email" name="username" id="id_username" autocomplete="username"
-               placeholder="you@organisation.com" required autofocus
-               value="{{ form.username.value|default:'' }}">
-      </div>
-      <div class="field">
-        <label for="id_password">Password</label>
-        <input type="password" name="password" id="id_password"
-               autocomplete="current-password" required>
-      </div>
-      <button class="btn btn-dark" type="submit">Sign in</button>
-      <p style="margin:0"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
-      <p style="margin:0">New to Spled? <a href="{% url 'signup' %}"><b>Create an account</b></a></p>
-      <p style="margin:0"><a href="{% url 'projects' %}">Explore public projects</a></p>
-    </form>
-  </main>
-</div>
+  {% for error in form.non_field_errors %}
+    <div class="alert" role="alert">{{ error }}</div>
+  {% endfor %}
+  <div class="field">
+    <label for="id_username">Work email</label>
+    <input type="email" name="username" id="id_username" autocomplete="username"
+           placeholder="you@organisation.com" required autofocus
+           value="{{ form.username.value|default:'' }}">
+  </div>
+  <div class="field">
+    <label for="id_password">Password</label>
+    <input type="password" name="password" id="id_password"
+           autocomplete="current-password" required>
+  </div>
+  <button class="btn btn-dark" type="submit">Sign in</button>
+  <p style="margin:0"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
+  <p style="margin:0">New to Spled? <a href="{% url 'signup' %}"><b>Create an account</b></a></p>
+</form>
 {% endblock %}

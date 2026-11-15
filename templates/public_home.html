@@ -1,5 +1,6 @@
 {% extends "public_base.html" %}
 {% block title %}Spled | Public record{% endblock %}
+{% block description %}Spled is a public record of physical projects. Status is backed by dated, located evidence logged by each project’s team.{% endblock %}
 {% block content %}
 <section class="landing-hero">
   <div class="landing-copy">
@@ -24,7 +25,7 @@
   <div class="hero-panel card">
     <div class="mini-head">
       <span class="kicker">Live portfolio</span>
-      <span class="badge good">{{ verified_count }} verified</span>
+      <a class="badge good" href="{% url 'public_map' %}">View map</a>
     </div>
     <div class="panel-metric">
       <strong>{{ project_count }}</strong>
@@ -36,23 +37,19 @@
         <b>{{ evidence_count }}</b>
       </div>
       <div>
-        <small class="muted">Completion</small>
-        <b>72%</b>
+        <small class="muted">Verified on site</small>
+        <b>{{ verified_count }}</b>
       </div>
     </div>
     <div class="panel-list">
-      <div class="panel-row">
-        <span>Watermain upgrade</span>
-        <span class="status-pill status-good">On track</span>
-      </div>
-      <div class="panel-row">
-        <span>Drainage upgrade</span>
-        <span class="status-pill status-watch">Needs review</span>
-      </div>
-      <div class="panel-row">
-        <span>Access road works</span>
-        <span class="status-pill status-good">Verified</span>
-      </div>
+      {% for p in recent|slice:":3" %}
+        <a class="panel-row" href="{% url 'project' p.pk %}">
+          <span>{{ p.name }}</span>
+          <span class="badge st-{{ p.status }}">{{ p.get_status_display }}</span>
+        </a>
+      {% empty %}
+        <p class="muted small">No projects have been published yet.</p>
+      {% endfor %}
     </div>
   </div>
 </section>

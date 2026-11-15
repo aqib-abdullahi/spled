@@ -166,3 +166,14 @@ from . import settings_views  # noqa: E402
 urlpatterns += [
     path("app/settings/", settings_views.settings_hub, name="settings_hub"),
 ]
+
+# Step 43: information pages
+from . import info_views  # noqa: E402
+
+urlpatterns += [
+    path("how-it-works/", info_views.how_it_works, name="how_it_works"),
+    path("about/", info_views.about, name="about"),
+    path("contact/", info_views.contact, name="contact"),
+    path("privacy/", info_views.privacy, name="privacy"),
+    path("terms/", info_views.terms, name="terms"),
+]

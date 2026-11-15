@@ -1,0 +1,42 @@
+{% extends "public_base.html" %}
+{% block title %}Privacy{% endblock %}
+{% block description %}What Spled collects, who can see it and how to ask about your data.{% endblock %}
+{% block content %}
+<article class="prose">
+  <span class="eyebrow">Privacy</span>
+  <h1>Privacy notice</h1>
+  <div class="notice" role="note"><b>Draft.</b> This page is a working draft and has not yet been reviewed by a lawyer.</div>
+
+  <h2>What Spled collects</h2>
+  <ul>
+    <li><b>Account details:</b> your name, email address, time zone and, if you give one, a phone number. Passwords are stored as one-way hashes, never in plain text.</li>
+    <li><b>Work records:</b> evidence entries logged by teams, including notes, dates, the location reported by the device, and photos.</li>
+    <li><b>Security records:</b> sign-in and rate-limit records, two-step verification settings, and an audit log of changes made in an organisation.</li>
+    <li><b>Cookies:</b> a session cookie that keeps you signed in and a cookie that protects forms. Spled does not currently include advertising or analytics scripts.</li>
+  </ul>
+
+  <h2>What the public can see</h2>
+  <p>Only projects that an organisation has published, and only when Spled has verified that organisation. Published pages show the project’s details, status, progress and evidence activity. Staff names and email addresses are never shown publicly. Everything else is visible only to members of the organisation.</p>
+
+  <h2>Photos and locations</h2>
+  <p>Photos are kept in private storage. Copies shown in the app have location metadata removed, and original files are never served. A location is recorded with each evidence entry because “verified on site” is based on it.</p>
+
+  <h2>Other services your browser contacts</h2>
+  <ul>
+    <li><b>Google Fonts:</b> pages load a typeface from Google, so your browser sends a request to Google’s servers.</li>
+    <li><b>OpenStreetMap:</b> maps load tiles from OpenStreetMap’s servers, which receive your IP address. The map provider may change before launch.</li>
+  </ul>
+
+  <h2>How long records are kept</h2>
+  <p>Evidence is append-only by design. Entries are not edited or deleted, and corrections are added as new entries. Account deletion is not yet available in the app. If you need your account details changed or removed, contact us.</p>
+
+  <h2>Where data is stored</h2>
+  <p>Spled’s hosting has not been finalised. This section will name the hosting country and provider before launch.</p>
+
+  <h2>Your choices</h2>
+  <p>You can ask what Spled holds about you, ask for corrections, or ask about removal. Because evidence records are permanent by design, we will explain what can and cannot be removed when you ask.</p>
+
+  <h2>Changes and contact</h2>
+  <p>This page will be updated if anything changes. Questions: <a href="{% url 'contact' %}">contact us</a>.</p>
+</article>
+{% endblock %}

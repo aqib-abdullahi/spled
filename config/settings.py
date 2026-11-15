@@ -283,3 +283,6 @@ MAP_TILE_SIZE = env.int("MAP_TILE_SIZE", default=DEFAULT_TILE_SIZE)
 validate_tile_settings(
     MAP_TILE_URL, MAP_TILE_ATTRIBUTION, MAP_TILE_MAX_ZOOM, MAP_TILE_SIZE, DEBUG
 )
+
+# Step 43: public contact address, shown on /contact/. Leave empty until one exists.
+CONTACT_EMAIL = env("CONTACT_EMAIL", default="")

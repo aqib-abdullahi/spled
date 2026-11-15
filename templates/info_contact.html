@@ -1,0 +1,36 @@
+{% extends "public_base.html" %}
+{% block title %}Contact{% endblock %}
+{% block description %}Contact Spled about joining as an agency or developer, or a problem with your account.{% endblock %}
+{% block content %}
+<article class="prose">
+  <span class="eyebrow">Contact</span>
+  <h1>Get in touch</h1>
+  <p class="lede">Questions about Spled, joining as an agency or developer, or a problem with your account.</p>
+
+  {% if contact_email %}
+    <div class="card">
+      <h2 style="margin-top:0">Email</h2>
+      <p><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></p>
+    </div>
+  {% else %}
+    <div class="notice" role="status">Contact details have not been set up yet.</div>
+  {% endif %}
+
+  <h2>Joining as an agency or developer</h2>
+  <p>Create an account and set up your organisation. You can work privately straight away. Publishing to the public record unlocks once Spled has verified the organisation.</p>
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{% url 'signup' %}">Create an account</a>
+    <a class="btn btn-light" href="{% url 'signin' %}">Sign in</a>
+  </div>
+
+  <h2>What to include in a message</h2>
+  <ul>
+    <li>Your name and organisation.</li>
+    <li>The project or page you are asking about.</li>
+    <li>What you expected and what happened instead.</li>
+  </ul>
+
+  <h2>Please do not send</h2>
+  <p>Passwords, two-step verification codes or backup codes. Spled will never ask for them.</p>
+</article>
+{% endblock %}

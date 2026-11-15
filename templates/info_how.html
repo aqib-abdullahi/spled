@@ -1,0 +1,42 @@
+{% extends "public_base.html" %}
+{% block title %}How evidence works{% endblock %}
+{% block description %}How Spled records dated, located evidence, checks it against the project site and keeps the record from being quietly changed.{% endblock %}
+{% block content %}
+<article class="prose">
+  <span class="eyebrow">How evidence works</span>
+  <h1>Status is only as good as the evidence behind it.</h1>
+  <p class="lede">On Spled, a project’s status is not typed in and forgotten. It is backed by dated, located entries logged by the people doing the work, and the rules below apply to every one of them.</p>
+
+  <h2>1. Every entry has a date, a place and a person</h2>
+  <p>A team member logs an entry with a note, the time, the location reported by their device and, optionally, photos. The public record shows what was logged and when. It never shows staff names or email addresses.</p>
+
+  <h2>2. “Verified on site” is calculated, not claimed</h2>
+  <p>An entry is marked verified on site when its reported location is inside the project’s drawn boundary, or within {{ verify_radius }} metres of the project’s pin. Spled works this out automatically, so nobody can tick it by hand.</p>
+  <p><b>What it does not prove.</b> The location comes from the device used to log the entry. A match is a strong signal, not proof that someone was physically there.</p>
+
+  <h2>3. Records cannot be quietly changed</h2>
+  <p>Entries are append-only. Nobody can edit or delete one. A mistake is corrected by adding a new entry that says what changed and why. Each entry carries a SHA-256 fingerprint that includes the one before it, and the database itself refuses edits and deletions to evidence. If anything is altered, the chain stops matching and the change can be detected.</p>
+  <p>This makes tampering detectable. It is not a substitute for an independent audit.</p>
+
+  <h2>4. Photos are private and checked</h2>
+  <p>Photos are stored privately and shown only through pages that check permission. Original files are never served, and the copies that are shown have location metadata removed. A fingerprint of each photo is part of the entry’s record, so a swapped photo is detectable.</p>
+
+  <h2>5. Some entries wait for review</h2>
+  <p>Entries logged by contractors are reviewed by an editor or admin of the organisation before they count. Only entries that count appear in dashboards, public figures, share links and reports.</p>
+
+  <h2>6. What the public can see</h2>
+  <p>Only projects that an organisation has chosen to publish, and only when Spled has verified the organisation. Everything else stays private to the team.</p>
+
+  <h2>What this does not do</h2>
+  <ul>
+    <li>It does not judge the quality of the work. It records what was logged, when and where.</li>
+    <li>It cannot tell whether a device reported a false location.</li>
+    <li>Status reflects what the team has logged. Gaps in the record stay visible rather than hidden.</li>
+  </ul>
+
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{% url 'projects' %}">Explore projects</a>
+    <a class="btn btn-light" href="{% url 'public_map' %}">See the map</a>
+  </div>
+</article>
+{% endblock %}

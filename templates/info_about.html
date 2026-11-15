@@ -1,0 +1,30 @@
+{% extends "public_base.html" %}
+{% block title %}About{% endblock %}
+{% block description %}Spled is a spatial ledger: a system of record for physical projects, with status backed by dated, located evidence.{% endblock %}
+{% block content %}
+<article class="prose">
+  <span class="eyebrow">About Spled</span>
+  <h1>A spatial ledger for physical projects.</h1>
+  <p class="lede">Spled is a system of record for roads, buildings, power and agriculture. Teams log dated, located evidence, and a project’s status is backed by that evidence rather than by self-reported claims.</p>
+
+  <h2>Who it is for</h2>
+  <ul>
+    <li><b>Agencies and developers</b> who need one reliable record of what is happening on each site.</li>
+    <li><b>Owners who monitor works from far away</b> and want to check progress against evidence rather than take it on trust.</li>
+    <li><b>The public</b>, who can browse a read-only record of the projects that organisations choose to publish.</li>
+  </ul>
+
+  <h2>What guides it</h2>
+  <ul>
+    <li><b>Evidence before claims.</b> A status is only as strong as the entries behind it.</li>
+    <li><b>Nothing is quietly rewritten.</b> Corrections are added, never overwritten, and the reason is recorded.</li>
+    <li><b>Private by default.</b> Work stays inside the organisation until it is published, and staff names and emails are never shown publicly.</li>
+    <li><b>Honest about limits.</b> <a href="{% url 'how_it_works' %}">How evidence works</a> says what the checks prove and what they do not.</li>
+  </ul>
+
+  <div class="hero-actions">
+    <a class="btn btn-primary" href="{% url 'projects' %}">Explore projects</a>
+    <a class="btn btn-light" href="{% url 'contact' %}">Contact us</a>
+  </div>
+</article>
+{% endblock %}

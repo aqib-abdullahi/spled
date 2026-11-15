@@ -2,12 +2,14 @@
 {% block title %}Spled | Public record{% endblock %}
 {% block description %}Spled is a public record of physical projects. Status is backed by dated, located evidence logged by each project’s team.{% endblock %}
 {% block content %}
-<section class="landing-hero">
-  <div class="landing-copy">
+<div class="lp">
+
+<section class="lp-hero">
+  <div>
     <span class="eyebrow">Evidence-backed public record</span>
-    <h1>Turn project status into a trusted, visible story.</h1>
-    <p>A record of roads, buildings, power and farms where status comes from dated, located evidence logged by the team doing the work, not from claims.</p>
-    <div class="hero-actions">
+    <h1>Project status you can check.</h1>
+    <p class="lp-lede">Every update is backed by dated, located evidence from the team doing the work.</p>
+    <div class="lp-actions">
       <a class="btn btn-primary" href="{% url 'projects' %}">Explore projects</a>
       {% if request.user.is_authenticated %}
         <a class="btn btn-light" href="{% url 'overview' %}">Open dashboard</a>
@@ -15,33 +17,19 @@
         <a class="btn btn-light" href="{% url 'signin' %}">Agency sign in</a>
       {% endif %}
     </div>
-    <ul class="hero-points">
-      <li><i data-lucide="clock-3" class="icon icon-sm" aria-hidden="true"></i><span>Time-stamped evidence</span></li>
-      <li><i data-lucide="shield-check" class="icon icon-sm" aria-hidden="true"></i><span>Site verified status</span></li>
-      <li><i data-lucide="flag" class="icon icon-sm" aria-hidden="true"></i><span>Clear milestone progress</span></li>
-    </ul>
   </div>
 
-  <div class="hero-panel card">
-    <div class="mini-head">
-      <span class="kicker">Live portfolio</span>
-      <a class="badge good" href="{% url 'public_map' %}">View map</a>
+  <div class="lp-card lp-panel">
+    <div class="lp-panel-head">
+      <span class="lp-kicker">Live portfolio</span>
+      <a class="lp-link" href="{% url 'public_map' %}">View map</a>
     </div>
-    <div class="panel-metric">
-      <strong>{{ project_count }}</strong>
-      <span>projects tracked</span>
+    <div class="lp-nums">
+      <div><b>{{ project_count }}</b><span>Projects</span></div>
+      <div><b>{{ evidence_count }}</b><span>Evidence</span></div>
+      <div><b>{{ verified_count }}</b><span>Verified on site</span></div>
     </div>
-    <div class="panel-grid">
-      <div>
-        <small class="muted">Evidence logged</small>
-        <b>{{ evidence_count }}</b>
-      </div>
-      <div>
-        <small class="muted">Verified on site</small>
-        <b>{{ verified_count }}</b>
-      </div>
-    </div>
-    <div class="panel-list">
+    <div class="lp-rows">
       {% for p in recent|slice:":3" %}
         <a class="panel-row" href="{% url 'project' p.pk %}">
           <span>{{ p.name }}</span>
@@ -54,166 +42,97 @@
   </div>
 </section>
 
-<section class="pubstats" aria-label="At a glance">
-  <div class="card stat">
-    <div class="stat-num">{{ project_count }}</div>
-    <div class="muted">published project{{ project_count|pluralize }}</div>
+<section aria-label="How it works">
+  <div class="lp-head">
+    <span class="eyebrow">How it works</span>
+    <h2>Three steps from site to record.</h2>
   </div>
-  <div class="card stat">
-    <div class="stat-num">{{ evidence_count }}</div>
-    <div class="muted">piece{{ evidence_count|pluralize }} of evidence</div>
-  </div>
-  <div class="card stat attention">
-    <div class="stat-num">{{ verified_count }}</div>
-    <div class="muted">verified on site</div>
-  </div>
+  <ol class="lp-steps">
+    <li class="lp-card lp-step">
+      <span class="lp-step-no">01</span>
+      <h3>Log the work</h3>
+      <p>Notes, photos and milestones, each with a date and a place.</p>
+    </li>
+    <li class="lp-card lp-step">
+      <span class="lp-step-no">02</span>
+      <h3>Check the location</h3>
+      <p>Spled compares it with the project site and marks it verified, or not.</p>
+    </li>
+    <li class="lp-card lp-step">
+      <span class="lp-step-no">03</span>
+      <h3>Publish when ready</h3>
+      <p>Corrections are added, never overwritten.</p>
+    </li>
+  </ol>
 </section>
 
 <section aria-label="Who Spled is for">
-  <div class="section-head">
+  <div class="lp-head">
     <span class="eyebrow">Who it’s for</span>
     <h2>One record, three ways to use it.</h2>
   </div>
-  <div class="aud-grid">
-    <article class="card aud-card">
-      <div class="feature-icon"><i data-lucide="building-2" class="icon icon-sm" aria-hidden="true"></i></div>
+  <div class="lp-grid-3">
+    <article class="lp-card lp-aud">
+      <span class="lp-icon"><i data-lucide="building-2" class="icon" aria-hidden="true"></i></span>
       <h3>Agencies and developers</h3>
-      <p>Keep one reliable record of every site.</p>
-      <ul>
-        <li>Log dated, located evidence with photos</li>
-        <li>Review contractor entries before they count</li>
-        <li>Publish projects once your organisation is verified</li>
-      </ul>
-      {% if not request.user.is_authenticated %}
-        <a class="btn btn-primary" href="{% url 'signup' %}">Create an account</a>
+      <p>Log evidence, review it, publish when ready.</p>
+      {% if request.user.is_authenticated %}
+        <a class="lp-link" href="{% url 'overview' %}">Open dashboard</a>
+      {% else %}
+        <a class="lp-link" href="{% url 'signup' %}">Create an account</a>
       {% endif %}
     </article>
-    <article class="card aud-card">
-      <div class="feature-icon"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i></div>
+    <article class="lp-card lp-aud">
+      <span class="lp-icon"><i data-lucide="map-pin" class="icon" aria-hidden="true"></i></span>
       <h3>Owners watching from afar</h3>
-      <p>Check progress against evidence instead of taking it on trust.</p>
-      <ul>
-        <li>See which sites are delayed, stalled or gone quiet</li>
-        <li>Share a project with an expiring, optionally password-protected link</li>
-        <li>Export a portfolio CSV or a printable site report</li>
-      </ul>
-      <a class="btn btn-light" href="{% url 'how_it_works' %}">How evidence works</a>
+      <p>Check progress against evidence, not promises.</p>
+      <a class="lp-link" href="{% url 'how_it_works' %}">How evidence works</a>
     </article>
-    <article class="card aud-card">
-      <div class="feature-icon"><i data-lucide="eye" class="icon icon-sm" aria-hidden="true"></i></div>
+    <article class="lp-card lp-aud">
+      <span class="lp-icon"><i data-lucide="eye" class="icon" aria-hidden="true"></i></span>
       <h3>The public</h3>
-      <p>Browse what organisations choose to publish.</p>
-      <ul>
-        <li>Status, progress and evidence activity for each project</li>
-        <li>A map of published projects</li>
-        <li>No staff names or email addresses, ever</li>
-      </ul>
-      <a class="btn btn-light" href="{% url 'projects' %}">Explore projects</a>
+      <p>Browse the projects organisations publish.</p>
+      <a class="lp-link" href="{% url 'projects' %}">Explore projects</a>
     </article>
-  </div>
-</section>
-
-<section class="feature-section" id="features">
-  <div class="section-head">
-    <span class="eyebrow">Why teams use Spled</span>
-    <h2>Everything needed to keep delivery transparent.</h2>
-  </div>
-  <div class="feature-grid">
-    <article class="card feature-item">
-      <div class="feature-icon"><i data-lucide="clipboard-check" class="icon icon-sm" aria-hidden="true"></i></div>
-      <h3>Evidence first</h3>
-      <p>Every update is tied to dated, auditable records instead of vague updates.</p>
-    </article>
-    <article class="card feature-item">
-      <div class="feature-icon"><i data-lucide="eye" class="icon icon-sm" aria-hidden="true"></i></div>
-      <h3>Public visibility</h3>
-      <p>Keep stakeholders informed with a clean public view of project status and activity.</p>
-    </article>
-    <article class="card feature-item">
-      <div class="feature-icon"><i data-lucide="route" class="icon icon-sm" aria-hidden="true"></i></div>
-      <h3>Milestone tracking</h3>
-      <p>See work progressing across key delivery stages with clear due dates and completion flags.</p>
-    </article>
-    <article class="card feature-item">
-      <div class="feature-icon"><i data-lucide="image" class="icon icon-sm" aria-hidden="true"></i></div>
-      <h3>Photo-backed proof</h3>
-      <p>Attach visual records to each entry so claims can be checked against the site.</p>
-    </article>
-    <article class="card feature-item">
-      <div class="feature-icon"><i data-lucide="check-circle-2" class="icon icon-sm" aria-hidden="true"></i></div>
-      <h3>Review controls</h3>
-      <p>Route updates through approval and audit flows designed for accountable project teams.</p>
-    </article>
-    <article class="card feature-item">
-      <div class="feature-icon"><i data-lucide="users" class="icon icon-sm" aria-hidden="true"></i></div>
-      <h3>Team workflows</h3>
-      <p>Coordinate owners, collaborators, and permissions without losing track of the source of truth.</p>
-    </article>
-  </div>
-</section>
-
-<section class="process-section">
-  <div class="section-head narrow">
-    <span class="eyebrow">How it works</span>
-    <h2>From site activity to a clear public story.</h2>
-  </div>
-  <div class="process-grid">
-    <div class="card process-step">
-      <span class="step-no">01</span>
-      <h3>Log the work</h3>
-      <p>Capture evidence, status notes, and milestones as each task progresses.</p>
-    </div>
-    <div class="card process-step">
-      <span class="step-no">02</span>
-      <h3>Check the location</h3>
-      <p>Spled compares each entry’s reported location with the project site and marks it verified on site, or not.</p>
-    </div>
-    <div class="card process-step">
-      <span class="step-no">03</span>
-      <h3>Publish when ready</h3>
-      <p>Share a record that stakeholders can inspect, with corrections added rather than overwritten.</p>
-    </div>
   </div>
 </section>
 
 <section aria-label="What verified on site means">
-  <div class="card evidence-split">
+  <div class="lp-card lp-trust">
     <div>
       <span class="eyebrow">Verified on site</span>
       <h2>A check you can’t tick by hand.</h2>
-      <p class="muted">An entry is verified on site when its reported location falls inside the project’s boundary, or close to its pin. Spled works this out itself, and the result is locked into the entry’s record.</p>
-      <div class="evidence-note">
-        <p class="muted"><b>What it does not prove.</b> The location comes from the device that logged the entry, so a match is a strong signal, not proof that someone was physically there.</p>
-      </div>
-      <p><a href="{% url 'how_it_works' %}"><b>Read how evidence works →</b></a></p>
+      <p>Spled compares each entry’s reported location with the project’s boundary or pin, and locks the result into the record.</p>
+      <p class="lp-fine"><b>What it does not prove.</b> The location comes from the device, so a match is a strong signal, not proof of presence.</p>
+      <a class="lp-link" href="{% url 'how_it_works' %}">How evidence works</a>
     </div>
-    <ul class="evidence-checks">
+    <ul class="lp-checks">
       <li>
-        <div class="feature-icon"><i data-lucide="clock-3" class="icon icon-sm" aria-hidden="true"></i></div>
-        <div><b>Dated and located</b><div class="muted">Every entry carries a time and a reported position.</div></div>
+        <span class="lp-icon"><i data-lucide="clock-3" class="icon" aria-hidden="true"></i></span>
+        <div><b>Dated and located</b><small>Every entry has a time and a position.</small></div>
       </li>
       <li>
-        <div class="feature-icon"><i data-lucide="shield-check" class="icon icon-sm" aria-hidden="true"></i></div>
-        <div><b>Not quietly changed</b><div class="muted">Entries can’t be edited or deleted. A mistake is corrected with a new entry and a reason.</div></div>
+        <span class="lp-icon"><i data-lucide="shield-check" class="icon" aria-hidden="true"></i></span>
+        <div><b>Never quietly changed</b><small>Corrections are new entries, with a reason.</small></div>
       </li>
       <li>
-        <div class="feature-icon"><i data-lucide="image" class="icon icon-sm" aria-hidden="true"></i></div>
-        <div><b>Photos stay private</b><div class="muted">Shown copies have location data removed, and originals are never served.</div></div>
+        <span class="lp-icon"><i data-lucide="image" class="icon" aria-hidden="true"></i></span>
+        <div><b>Photos stay private</b><small>Location data is stripped from shown copies.</small></div>
       </li>
     </ul>
   </div>
 </section>
 
-<section aria-label="Recently verified" class="project-showcase">
-  <div class="pagehead project-head">
-    <div>
+<section aria-label="Recently verified">
+  <div class="lp-head-row">
+    <div class="lp-head">
       <span class="eyebrow">Recently verified</span>
       <h2>Fresh project activity</h2>
     </div>
-    <a href="{% url 'projects' %}"><b>View all projects →</b></a>
+    <a class="lp-link" href="{% url 'projects' %}">View all projects</a>
   </div>
-  <div class="pcards">
-    {% for p in recent %}
+  <div class="lp-grid-3">
+    {% for p in recent|slice:":3" %}
       {% include "_project_card.html" %}
     {% empty %}
       <p class="muted">No projects have been published yet.</p>
@@ -222,48 +141,99 @@
 </section>
 
 <section aria-label="Frequently asked questions">
-  <div class="section-head narrow">
-    <span class="eyebrow">Questions</span>
-    <h2>Good to know before you start.</h2>
-  </div>
-  <div class="faq">
-    <details>
-      <summary>Who can see a project?</summary>
-      <p>Only projects that an organisation has published, and only when Spled has verified that organisation. Everything else stays private to the team. Staff names and email addresses are never shown publicly.</p>
-    </details>
-    <details>
-      <summary>What does “verified on site” mean?</summary>
-      <p>The location reported with an entry was inside the project’s boundary or close to its pin. It is calculated automatically. It is a strong signal, not proof that someone was physically there, because the location comes from the device used to log the entry.</p>
-    </details>
-    <details>
-      <summary>Can an entry be edited or deleted?</summary>
-      <p>No. Entries are append-only. A mistake is corrected by adding a new entry that says what changed and why, so the history stays visible.</p>
-    </details>
-    <details>
-      <summary>Can my team share a project without publishing it?</summary>
-      <p>Yes. Admins, editors and owners can create share links that expire after 7, 30 or 90 days, with an optional password. A link can be revoked at any time and shows only entries that count.</p>
-    </details>
-    <details>
-      <summary>Does it work on a phone?</summary>
-      <p>Yes, in a phone browser, including logging evidence with photos. Offline capture is not available yet, so you need a connection when you submit an entry.</p>
-    </details>
-    <details>
-      <summary>How does my organisation get verified?</summary>
-      <p>Create an account and set up your organisation. You can work privately straight away. Publishing to the public record unlocks once Spled has checked your organisation. <a href="{% url 'contact' %}">Contact us</a> with any questions.</p>
-    </details>
+  <div class="lp-faq-wrap">
+    <div class="lp-head">
+      <span class="eyebrow">Questions</span>
+      <h2>Good to know.</h2>
+      <p>Something else? <a href="{% url 'contact' %}"><b>Contact us</b></a>.</p>
+    </div>
+    <div class="lp-faq">
+      <details>
+        <summary>Who can see a project?</summary>
+        <p>Only projects an organisation has published, and only once Spled has verified it. Staff names and emails are never shown.</p>
+      </details>
+      <details>
+        <summary>What does “verified on site” mean?</summary>
+        <p>The entry’s reported location was inside the project boundary or near its pin. It is a strong signal, not proof someone was there.</p>
+      </details>
+      <details>
+        <summary>Can an entry be edited or deleted?</summary>
+        <p>No. Mistakes are corrected with a new entry that says what changed and why.</p>
+      </details>
+      <details>
+        <summary>Can I share a project without publishing it?</summary>
+        <p>Yes. Admins, editors and owners can create expiring share links, with an optional password, and revoke them any time.</p>
+      </details>
+      <details>
+        <summary>Does it work on a phone?</summary>
+        <p>Yes, in a phone browser, including photos. Offline capture is not available yet.</p>
+      </details>
+    </div>
   </div>
 </section>
 
-<section class="trust-panel card">
+<section class="lp-cta" aria-label="Get started">
   <div>
-    <span class="eyebrow">Built for accountable delivery</span>
-    <h2>Give teams and stakeholders one record they can check.</h2>
+    <h2>Start with a private workspace.</h2>
+    <p>Publish when your organisation is verified.</p>
   </div>
-  <div class="cta-stack">
-    <a class="btn btn-primary" href="{% url 'projects' %}">Browse public records</a>
-    {% if not request.user.is_authenticated %}
-      <a class="btn btn-light" href="{% url 'signup' %}">Create an account</a>
+  <div class="lp-actions">
+    {% if request.user.is_authenticated %}
+      <a class="btn btn-primary" href="{% url 'overview' %}">Open dashboard</a>
+    {% else %}
+      <a class="btn btn-primary" href="{% url 'signup' %}">Create an account</a>
     {% endif %}
+    <a class="btn btn-light" href="{% url 'projects' %}">Browse projects</a>
   </div>
 </section>
+
+</div>
+<script>
+  // lp-faq-anim: smooth open and close for the FAQ. Without this the details still work.
+  (function () {
+    if (!window.Element || !Element.prototype.animate) { return; }
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+    document.querySelectorAll(".lp-faq details").forEach(function (d) {
+      var summary = d.querySelector("summary");
+      var anim = null;
+      var closing = false;
+      function stop() {
+        if (anim) { anim.onfinish = null; anim.cancel(); anim = null; }
+      }
+      function run(from, to, done) {
+        d.style.overflow = "hidden";
+        anim = d.animate(
+          { height: [from + "px", to + "px"] },
+          { duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "forwards" }
+        );
+        anim.onfinish = function () {
+          if (done) { done(); }
+          stop();
+          d.style.overflow = "";
+        };
+      }
+      summary.addEventListener("click", function (e) {
+        e.preventDefault();
+        var start = d.offsetHeight;
+        var wasClosing = closing;
+        stop();
+        if (!d.open || wasClosing) {
+          closing = false;
+          d.classList.remove("is-closing");
+          d.open = true;
+          run(start, d.offsetHeight);
+        } else {
+          closing = true;
+          d.classList.add("is-closing");
+          var closed = summary.offsetHeight + (d.offsetHeight - d.clientHeight);
+          run(start, closed, function () {
+            d.open = false;
+            closing = false;
+            d.classList.remove("is-closing");
+          });
+        }
+      });
+    });
+  })();
+</script>
 {% endblock %}

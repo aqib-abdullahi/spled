@@ -11,34 +11,36 @@ class LandingPageTests(TestCase):
     def test_one_h1(self):
         self.assertContains(self.get(), "<h1>", count=1)
 
-    def test_audience_section_names_all_three_audiences(self):
+    def test_steps_and_audiences_are_three_equal_cards(self):
         r = self.get()
         self.assertContains(r, 'aria-label="Who Spled is for"')
+        self.assertContains(r, 'class="lp-card lp-step"', count=3)
+        self.assertContains(r, 'class="lp-card lp-aud"', count=3)
         for text in ("Agencies and developers", "Owners watching from afar", "The public"):
             with self.subTest(text=text):
                 self.assertContains(r, text)
 
-    def test_faq_has_six_questions(self):
+    def test_faq_has_five_questions(self):
         r = self.get()
         self.assertContains(r, 'aria-label="Frequently asked questions"')
-        self.assertContains(r, "<details>", count=6)
+        self.assertContains(r, "<details>", count=5)
 
     def test_faq_is_honest_about_offline_capture(self):
         self.assertContains(self.get(), "Offline capture is not available yet")
 
-    def test_evidence_section_links_to_the_full_explanation(self):
+    def test_evidence_section_states_its_limits_and_links_on(self):
         r = self.get()
         self.assertContains(r, 'aria-label="What verified on site means"')
-        self.assertContains(r, 'href="%s"' % reverse("how_it_works"))
         self.assertContains(r, "What it does not prove.")
+        self.assertContains(r, 'href="%s"' % reverse("how_it_works"))
 
     def test_signed_out_calls_to_action(self):
         r = self.get()
-        self.assertContains(r, 'href="%s"' % reverse("signup"))
-        self.assertContains(r, 'href="%s"' % reverse("signin"))
-        self.assertContains(r, 'href="%s"' % reverse("projects"))
-        self.assertContains(r, 'href="%s"' % reverse("public_map"))
+        for name in ("signup", "signin", "projects", "public_map"):
+            with self.subTest(link=name):
+                self.assertContains(r, 'href="%s"' % reverse(name))
         self.assertNotContains(r, "Open workspace")
+        self.assertNotContains(r, "Open dashboard")
 
     def test_signed_in_home_has_no_signup_links(self):
         User.objects.create_user("a@example.com", "pw12345678", full_name="A")

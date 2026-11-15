@@ -6,7 +6,7 @@
   <div class="landing-copy">
     <span class="eyebrow">Evidence-backed public record</span>
     <h1>Turn project status into a trusted, visible story.</h1>
-    <p>Track delivery, evidence, milestones, and site activity in one place so teams and stakeholders can see what is happening, what is verified, and what still needs attention.</p>
+    <p>A record of roads, buildings, power and farms where status comes from dated, located evidence logged by the team doing the work, not from claims.</p>
     <div class="hero-actions">
       <a class="btn btn-primary" href="{% url 'projects' %}">Explore projects</a>
       {% if request.user.is_authenticated %}
@@ -69,6 +69,50 @@
   </div>
 </section>
 
+<section aria-label="Who Spled is for">
+  <div class="section-head">
+    <span class="eyebrow">Who it’s for</span>
+    <h2>One record, three ways to use it.</h2>
+  </div>
+  <div class="aud-grid">
+    <article class="card aud-card">
+      <div class="feature-icon"><i data-lucide="building-2" class="icon icon-sm" aria-hidden="true"></i></div>
+      <h3>Agencies and developers</h3>
+      <p>Keep one reliable record of every site.</p>
+      <ul>
+        <li>Log dated, located evidence with photos</li>
+        <li>Review contractor entries before they count</li>
+        <li>Publish projects once your organisation is verified</li>
+      </ul>
+      {% if not request.user.is_authenticated %}
+        <a class="btn btn-primary" href="{% url 'signup' %}">Create an account</a>
+      {% endif %}
+    </article>
+    <article class="card aud-card">
+      <div class="feature-icon"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i></div>
+      <h3>Owners watching from afar</h3>
+      <p>Check progress against evidence instead of taking it on trust.</p>
+      <ul>
+        <li>See which sites are delayed, stalled or gone quiet</li>
+        <li>Share a project with an expiring, optionally password-protected link</li>
+        <li>Export a portfolio CSV or a printable site report</li>
+      </ul>
+      <a class="btn btn-light" href="{% url 'how_it_works' %}">How evidence works</a>
+    </article>
+    <article class="card aud-card">
+      <div class="feature-icon"><i data-lucide="eye" class="icon icon-sm" aria-hidden="true"></i></div>
+      <h3>The public</h3>
+      <p>Browse what organisations choose to publish.</p>
+      <ul>
+        <li>Status, progress and evidence activity for each project</li>
+        <li>A map of published projects</li>
+        <li>No staff names or email addresses, ever</li>
+      </ul>
+      <a class="btn btn-light" href="{% url 'projects' %}">Explore projects</a>
+    </article>
+  </div>
+</section>
+
 <section class="feature-section" id="features">
   <div class="section-head">
     <span class="eyebrow">Why teams use Spled</span>
@@ -121,14 +165,42 @@
     </div>
     <div class="card process-step">
       <span class="step-no">02</span>
-      <h3>Verify on site</h3>
-      <p>Confirm the record matches the real state at the project location.</p>
+      <h3>Check the location</h3>
+      <p>Spled compares each entry’s reported location with the project site and marks it verified on site, or not.</p>
     </div>
     <div class="card process-step">
       <span class="step-no">03</span>
-      <h3>Publish with confidence</h3>
-      <p>Share a transparent record that stakeholders can inspect and trust.</p>
+      <h3>Publish when ready</h3>
+      <p>Share a record that stakeholders can inspect, with corrections added rather than overwritten.</p>
     </div>
+  </div>
+</section>
+
+<section aria-label="What verified on site means">
+  <div class="card evidence-split">
+    <div>
+      <span class="eyebrow">Verified on site</span>
+      <h2>A check you can’t tick by hand.</h2>
+      <p class="muted">An entry is verified on site when its reported location falls inside the project’s boundary, or close to its pin. Spled works this out itself, and the result is locked into the entry’s record.</p>
+      <div class="evidence-note">
+        <p class="muted"><b>What it does not prove.</b> The location comes from the device that logged the entry, so a match is a strong signal, not proof that someone was physically there.</p>
+      </div>
+      <p><a href="{% url 'how_it_works' %}"><b>Read how evidence works →</b></a></p>
+    </div>
+    <ul class="evidence-checks">
+      <li>
+        <div class="feature-icon"><i data-lucide="clock-3" class="icon icon-sm" aria-hidden="true"></i></div>
+        <div><b>Dated and located</b><div class="muted">Every entry carries a time and a reported position.</div></div>
+      </li>
+      <li>
+        <div class="feature-icon"><i data-lucide="shield-check" class="icon icon-sm" aria-hidden="true"></i></div>
+        <div><b>Not quietly changed</b><div class="muted">Entries can’t be edited or deleted. A mistake is corrected with a new entry and a reason.</div></div>
+      </li>
+      <li>
+        <div class="feature-icon"><i data-lucide="image" class="icon icon-sm" aria-hidden="true"></i></div>
+        <div><b>Photos stay private</b><div class="muted">Shown copies have location data removed, and originals are never served.</div></div>
+      </li>
+    </ul>
   </div>
 </section>
 
@@ -149,10 +221,43 @@
   </div>
 </section>
 
+<section aria-label="Frequently asked questions">
+  <div class="section-head narrow">
+    <span class="eyebrow">Questions</span>
+    <h2>Good to know before you start.</h2>
+  </div>
+  <div class="faq">
+    <details>
+      <summary>Who can see a project?</summary>
+      <p>Only projects that an organisation has published, and only when Spled has verified that organisation. Everything else stays private to the team. Staff names and email addresses are never shown publicly.</p>
+    </details>
+    <details>
+      <summary>What does “verified on site” mean?</summary>
+      <p>The location reported with an entry was inside the project’s boundary or close to its pin. It is calculated automatically. It is a strong signal, not proof that someone was physically there, because the location comes from the device used to log the entry.</p>
+    </details>
+    <details>
+      <summary>Can an entry be edited or deleted?</summary>
+      <p>No. Entries are append-only. A mistake is corrected by adding a new entry that says what changed and why, so the history stays visible.</p>
+    </details>
+    <details>
+      <summary>Can my team share a project without publishing it?</summary>
+      <p>Yes. Admins, editors and owners can create share links that expire after 7, 30 or 90 days, with an optional password. A link can be revoked at any time and shows only entries that count.</p>
+    </details>
+    <details>
+      <summary>Does it work on a phone?</summary>
+      <p>Yes, in a phone browser, including logging evidence with photos. Offline capture is not available yet, so you need a connection when you submit an entry.</p>
+    </details>
+    <details>
+      <summary>How does my organisation get verified?</summary>
+      <p>Create an account and set up your organisation. You can work privately straight away. Publishing to the public record unlocks once Spled has checked your organisation. <a href="{% url 'contact' %}">Contact us</a> with any questions.</p>
+    </details>
+  </div>
+</section>
+
 <section class="trust-panel card">
   <div>
     <span class="eyebrow">Built for accountable delivery</span>
-    <h2>Give teams and stakeholders one place to trust the truth.</h2>
+    <h2>Give teams and stakeholders one record they can check.</h2>
   </div>
   <div class="cta-stack">
     <a class="btn btn-primary" href="{% url 'projects' %}">Browse public records</a>

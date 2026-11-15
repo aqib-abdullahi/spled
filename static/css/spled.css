@@ -1222,3 +1222,39 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
     text-decoration: underline; text-underline-offset: 3px;
   }
 }
+
+/* Step 47: landing page sections */
+.aud-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 16px; margin-top: 14px; }
+.aud-card { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.aud-card h3 { font-size: 19px; }
+.aud-card p { margin: 0; }
+.aud-card ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); line-height: 1.5; }
+.aud-card .btn { margin-top: auto; align-self: flex-start; }
+
+.evidence-split { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: start; }
+.evidence-split h2 { margin: 8px 0 10px; }
+.evidence-split p { margin: 0 0 12px; line-height: 1.6; }
+.evidence-note { border-left: 3px solid var(--mint); padding: 2px 0 2px 14px; margin: 14px 0; }
+.evidence-note p { margin: 0; }
+.evidence-checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; }
+.evidence-checks li { display: flex; gap: 12px; align-items: flex-start; }
+
+.faq { max-width: 820px; margin: 14px auto 0; width: 100%; display: flex; flex-direction: column; gap: 10px; }
+.faq details {
+  background: rgba(255,255,255,0.72); border: 1px solid rgba(16, 42, 42, 0.08);
+  border-radius: var(--radius-lg); padding: 0 18px;
+}
+.faq summary {
+  cursor: pointer; list-style: none; padding: 16px 0; font-weight: 700;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font-size: 22px; line-height: 1; color: var(--mint-strong); flex-shrink: 0; }
+.faq details[open] summary::after { content: "\2212"; }
+.faq details p { margin: 0 0 16px; color: var(--muted); line-height: 1.65; }
+.faq details a { text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 800px) {
+  .evidence-split { grid-template-columns: 1fr; gap: 20px; }
+  .aud-card .btn { width: 100%; justify-content: center; }
+}

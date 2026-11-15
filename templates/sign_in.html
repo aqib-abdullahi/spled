@@ -10,6 +10,7 @@
     <div>
       <h2>Evidence,<br>not claims.</h2>
       <p>A shared record of what is really happening on your sites, wherever you are.</p>
+      <a class="auth-back" href="{% url 'home' %}">← Back to the public site</a>
     </div>
     <div class="mono accent">09.0765° N · 7.3986° E</div>
   </div>
@@ -39,6 +40,7 @@
       <button class="btn btn-dark" type="submit">Sign in</button>
       <p style="margin:0"><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
       <p style="margin:0">New to Spled? <a href="{% url 'signup' %}"><b>Create an account</b></a></p>
+      <p style="margin:0"><a href="{% url 'projects' %}">Explore public projects</a></p>
     </form>
   </main>
 </div>

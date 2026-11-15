@@ -1,0 +1,36 @@
+{% extends "app_base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div>
+  <h1>Settings</h1>
+  <p class="muted" style="margin:6px 0 0">Manage your account{% if org_cards %} and {{ org.name }}{% endif %}.</p>
+</div>
+
+<section aria-label="Your account">
+  <h2 class="settings-heading">Your account</h2>
+  <div class="settings-grid">
+    {% for c in account_cards %}
+      <a class="card settings-card" href="{{ c.url }}">
+        <i data-lucide="{{ c.icon }}" class="icon" aria-hidden="true"></i>
+        <div><h3>{{ c.title }}</h3><p class="muted">{{ c.text }}</p></div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% if org_cards %}
+<section aria-label="Organisation">
+  <h2 class="settings-heading">{{ org.name }}</h2>
+  <div class="settings-grid">
+    {% for c in org_cards %}
+      <a class="card settings-card" href="{{ c.url }}">
+        <i data-lucide="{{ c.icon }}" class="icon" aria-hidden="true"></i>
+        <div><h3>{{ c.title }}</h3><p class="muted">{{ c.text }}</p></div>
+      </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<p class="muted small">Notification preferences and language are not available yet.</p>
+{% endblock %}

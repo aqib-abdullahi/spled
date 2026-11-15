@@ -1134,3 +1134,16 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
 .attn-main { min-width: 0; }
 .attn-main a { overflow-wrap: anywhere; }
 .attention-list h2 { font-size: 20px; margin-bottom: 8px; }
+
+/* Step 41: overview map card */
+.mapbox-short { height: 280px; }
+.card.map-card:hover { transform: none; }
+@media (max-width: 800px) { .mapbox-short { height: 240px; } }
+
+/* Step 42: settings hub */
+.settings-heading { font-size: 20px; margin-bottom: 12px; }
+.settings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+.settings-card { display: flex; gap: 14px; align-items: flex-start; color: var(--ink); min-width: 0; }
+.settings-card h3 { font-size: 17px; margin-bottom: 4px; }
+.settings-card p { margin: 0; }
+.settings-card .icon { width: 22px; height: 22px; margin-top: 2px; color: var(--mint-strong); }

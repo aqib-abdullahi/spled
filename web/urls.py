@@ -159,3 +159,10 @@ urlpatterns += [
     path("app/map/", staff_map_views.staff_map, name="staff_map"),
     path("app/map/data/", staff_map_views.staff_map_data, name="staff_map_data"),
 ]
+
+# Step 42: settings hub
+from . import settings_views  # noqa: E402
+
+urlpatterns += [
+    path("app/settings/", settings_views.settings_hub, name="settings_hub"),
+]

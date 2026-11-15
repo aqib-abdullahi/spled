@@ -1,4 +1,5 @@
 {% extends "app_base.html" %}
+{% load static %}
 {% block title %}Overview{% endblock %}
 {% block content %}
 {% if not membership %}
@@ -66,6 +67,24 @@
         {% if attention_more %}
           <p class="muted small">and {{ attention_more }} more. <a href="{% url 'sites' %}"><b>Open the site list</b></a></p>
         {% endif %}
+      </section>
+      {% endif %}
+
+      {% if total %}
+      <section class="card map-card" aria-label="Map of sites">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+          <h2 style="font-size:20px">Map</h2>
+          <a href="{% url 'staff_map' %}"><b>Open full map</b></a>
+        </div>
+        <div>
+          <div class="mapbox mapbox-short" id="overview-map" data-overview-map
+               data-url="{% url 'staff_map_data' %}"
+               role="region" aria-label="Map of your organisation's sites"></div>
+          <p class="muted mapstatus" role="status" style="margin:8px 0 0"></p>
+        </div>
+        <link rel="stylesheet" href="{% static 'vendor/maplibre-gl.css' %}">
+        <script src="{% static 'vendor/maplibre-gl.js' %}"></script>
+        <script src="{% static 'js/spled-map.js' %}"></script>
       </section>
       {% endif %}
 

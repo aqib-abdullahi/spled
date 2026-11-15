@@ -589,11 +589,40 @@
       });
   }
 
+  // ---- Overview card: a small map of the organisation's sites ----
+  function initOverviewMap(el) {
+    var note = el.parentNode.querySelector(".mapstatus");
+    function say(text) { if (note) { note.textContent = text; } }
+
+    var map = createMap(el, { center: DEFAULT_CENTER, zoom: 9, cooperativeGestures: true });
+    if (!map) { return; }
+
+    function add(data) {
+      var features = data.features || [];
+      clusteredLayer(map, "sites", data, staffPopup);
+      fitTo(map, features);
+      say(features.length + " site" + (features.length === 1 ? "" : "s") + " on the map");
+    }
+
+    fetch(el.dataset.url, { headers: { Accept: "application/json" }, credentials: "same-origin" })
+      .then(function (r) {
+        if (!r.ok) { throw new Error("bad response"); }
+        return r.json();
+      })
+      .then(function (data) {
+        if (map.isStyleLoaded()) { add(data); } else { map.once("load", function () { add(data); }); }
+      })
+      .catch(function () {
+        say("The sites couldn’t be loaded onto the map. The list below still works.");
+      });
+  }
+
   function init() {
     document.querySelectorAll("[data-pin-picker]").forEach(initPinPicker);
     document.querySelectorAll("[data-site-map]").forEach(initSiteMap);
     document.querySelectorAll("[data-public-map]").forEach(initPublicMap);
     document.querySelectorAll("[data-staff-map]").forEach(initStaffMap);
+    document.querySelectorAll("[data-overview-map]").forEach(initOverviewMap);
   }
 
   if (document.readyState === "loading") {

@@ -1441,3 +1441,23 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
 @media (prefers-reduced-motion: reduce) {
   .lp *, .lp *::before, .lp *::after { transition: none !important; animation: none !important; transform: none !important; }
 }
+
+/* Step 47d: cards bulge a little and cast a deeper shadow on hover */
+.lp .lp-aud, .lp .pcard, .lp .lp-step { position: relative; }
+.lp .lp-card, .lp .pcard {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s ease, border-color 0.2s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lp .lp-aud:hover, .lp .pcard:hover {
+    transform: translateY(-6px) scale(1.025);
+    border-color: rgba(61, 219, 176, 0.8);
+    box-shadow: 0 2px 6px rgba(19, 39, 46, 0.06), 0 24px 48px rgba(19, 39, 46, 0.16);
+    z-index: 2;
+  }
+  .lp .lp-step:hover {
+    transform: scale(1.02);
+    border-color: rgba(61, 219, 176, 0.5);
+    box-shadow: 0 14px 30px rgba(19, 39, 46, 0.1);
+    z-index: 1;
+  }
+}

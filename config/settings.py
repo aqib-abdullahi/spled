@@ -12,13 +12,18 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from email.policy import default
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
 
 import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+load_dotenv()
+
 env = environ.Env()
-environ.Env.read_env(BASE_DIR / ".env")
+# environ.Env.read_env(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -27,9 +32,11 @@ environ.Env.read_env(BASE_DIR / ".env")
 # SECRET_KEY now comes from the environment (see the end of this file).
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", default=True)
+# DEBUG = env.bool("DEBUG", default=True)
+DEBUG = os.getenv("DEBUG", "False")
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+# ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1:8000")
 
 # CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://boots-subtext-mossy.ngrok-free.dev", "https://127.0.0.1"])
 # CSRF_COOKIE_SECURE = True

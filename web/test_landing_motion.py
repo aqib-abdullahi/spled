@@ -32,3 +32,9 @@ class LandingMotionTests(TestCase):
         css = self.css()
         self.assertIn("text-decoration: underline", css)
         self.assertIn(".lp-aud .lp-link::before", css)
+    
+    def test_cards_bulge_and_cast_a_shadow_on_hover(self):
+        css = self.css()
+        self.assertIn("Step 47d", css)
+        self.assertIn("scale(1.025)", css)
+        self.assertIn("0 24px 48px", css)

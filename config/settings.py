@@ -293,3 +293,26 @@ validate_tile_settings(
 
 # Step 43: public contact address, shown on /contact/. Leave empty until one exists.
 CONTACT_EMAIL = env("CONTACT_EMAIL", default="")
+
+# Step 48: production static files.
+# Django's dev server serves static/ for you; a real server does not. collectstatic
+# copies every static file into STATIC_ROOT, and WhiteNoise serves them from there.
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+if not DEBUG:
+    try:
+        import whitenoise  # noqa: F401
+    except ImportError:
+        raise ImproperlyConfigured(
+            "DEBUG is off, so WhiteNoise is needed to serve static files. "
+            "Run: pip install -r requirements-prod.txt"
+        )
+    # WhiteNoise must sit directly after SecurityMiddleware.
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index("django.middleware.security.SecurityMiddleware") + 1,
+        "whitenoise.middleware.WhiteNoiseMiddleware",
+    )
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
+    }

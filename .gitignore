@@ -221,3 +221,6 @@ __marimo__/
 
 # Uploaded evidence photos
 private_media/
+
+# collectstatic output
+staticfiles/

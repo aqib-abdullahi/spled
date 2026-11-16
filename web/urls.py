@@ -177,3 +177,11 @@ urlpatterns += [
     path("privacy/", info_views.privacy, name="privacy"),
     path("terms/", info_views.terms, name="terms"),
 ]
+
+# Step 48: health check for monitors and load balancers
+from . import health  # noqa: E402
+
+urlpatterns += [
+    path("healthz/", health.healthz, name="healthz"),
+    path("healthz", health.healthz),  # some monitors do not follow the redirect to the slash
+]

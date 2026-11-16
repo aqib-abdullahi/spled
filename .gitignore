@@ -227,3 +227,6 @@ staticfiles/
 
 # local R2 test keys
 .env.r2
+
+# database backups (contain everything)
+backups/

@@ -123,7 +123,22 @@ class DeployCheckTests(SimpleTestCase):
     @override_settings(DEBUG=False, PHOTO_STORAGE="r2")
     def test_quiet_when_photos_are_in_a_bucket(self):
         self.assertEqual(check_photo_storage(None), [])
+        
+    @override_settings(DEBUG=True, PHOTO_STORAGE="local")
+    def test_works_when_django_passes_keyword_arguments(self):
+        # `manage.py check` calls every check like this
+        self.assertEqual(check_photo_storage(app_configs=None, databases=["default"]), [])
+        
+    @override_settings(DEBUG=False, PHOTO_STORAGE="local", PHOTOS_ON_PERSISTENT_DISK=True)
+    def test_quiet_when_local_disk_is_acknowledged(self):
+        self.assertEqual(check_photo_storage(app_configs=None), [])
 
+    @override_settings(DEBUG=False, PHOTO_STORAGE="local", PHOTOS_ON_PERSISTENT_DISK=False)
+    def test_still_warns_when_local_disk_is_not_acknowledged(self):
+        self.assertEqual([w.id for w in check_photo_storage(app_configs=None)], ["spled.W001"])
+
+    def test_acknowledgement_is_off_by_default(self):
+        self.assertFalse(settings.PHOTOS_ON_PERSISTENT_DISK)
 
 class StubStorage:
     def __init__(self, read_back=None, fail=False):

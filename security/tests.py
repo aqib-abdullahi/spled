@@ -286,6 +286,7 @@ class DeploymentSettingsTests(TestCase):
         proc = run_manage(
             "check", "--deploy",
             DEBUG="False", SECRET_KEY=secrets.token_urlsafe(64), ALLOWED_HOSTS="example.com",
+            PHOTOS_ON_PERSISTENT_DISK="True",
         )
         output = proc.stdout + proc.stderr
         self.assertEqual(proc.returncode, 0, output)

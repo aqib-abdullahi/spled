@@ -82,16 +82,21 @@ def private_storage():
     return _storage
 
 @checks.register(checks.Tags.security, deploy=True)
-def check_photo_storage(App_configs, **kwargs):
+def check_photo_storage(app_configs=None, **kwargs):
     """shown by `manage.py check -deploy`."""
-    if not settings.DEBUG and getattr(settings, "PHOTO_STORAGE", "local") == "local":
+    if (
+        not settings.DEBUG
+        and getattr(settings, "PHOTO_STORAGE", "local") == "local"
+        and not getattr(settings, "PHOTOS_ON_PERSISTENT_DISK", False)
+    ):
         return [
             checks.Warning(
                 "Evidence photos are stored on this server's local disk.",
                 hint=(
                     "Hosts that restart or redeploy lose local files, so photos would "
                     "disappear while their fingerprints stay in the record. "
-                    "Set PHOTO_STORAGE=r2, or attach a persistent disk."
+                    "Set PHOTO_STORAGE=r2, or attach a persistent disk and set "
+                    "PHOTOS_ON_PERSISTENT_DISK=True to say so."
                 ),
                 id="spled.W001",
             )

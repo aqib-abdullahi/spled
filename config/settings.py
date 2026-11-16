@@ -327,3 +327,12 @@ R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="")
 R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
 R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
 R2_PHOTO_BUCKET = env("R2_PHOTO_BUCKET", default="")
+
+# Step 50: backups. Dumps contain everything, so keep this folder out of Git.
+BACKUP_DIR = env("BACKUP_DIR", default="")  # empty means backups/ in the project folder
+PG_BIN_DIR = env("PG_BIN_DIR", default="")  # folder with pg_dump and pg_restore, if not on PATH
+
+# Step 49c: say so when photos stay on a local disk that persists (a VPS, an attached volume).
+# Silences the spled.W001 deploy warning. It is a claim the app cannot verify:
+# only set it if the disk really survives restarts and redeploys.
+PHOTOS_ON_PERSISTENT_DISK = env.bool("PHOTOS_ON_PERSISTENT_DISK", default=False)

@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.core.files.base import ContentFile
 from organisations.models import Organisation
 
-from .photos import photo_upload_path, private_storage
+from .photos import check_photo_file, photo_upload_path, private_storage
 
 
 class Site(models.Model):
@@ -274,14 +274,9 @@ class EvidenceEntry(models.Model):
         problems = []
         for entry in cls.objects.filter(site=site).prefetch_related("photos"):
             for photo in entry.photos.all():
-                try:
-                    with photo.original.open("rb") as handle:
-                        digest = hashlib.sha256(handle.read()).hexdigest()
-                except OSError:
-                    problems.append((entry.id, f"photo {photo.id} file missing"))
-                    continue
-                if digest != photo.sha256:
-                    problems.append((entry.id, f"photo {photo.id} file changed"))
+                problem = check_photo_file(photo)
+                if problem:
+                    problems.append((entry.id, problem))
         return problems
 
 class EvidenceReview(models.Model):

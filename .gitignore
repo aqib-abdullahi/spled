@@ -224,3 +224,6 @@ private_media/
 
 # collectstatic output
 staticfiles/
+
+# local R2 test keys
+.env.r2

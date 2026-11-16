@@ -316,3 +316,14 @@ if not DEBUG:
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
     }
+
+# Step 49: where evidence photos live.
+# "local" keeps them in private_media/ on disk (development).
+# "r2" keeps them in a private Cloudflare R2 bucket, so they survive restarts and redeploys.
+PHOTO_STORAGE = env("PHOTO_STORAGE", default="local")
+if "test" in sys.argv:
+    PHOTO_STORAGE = "local"  # tests must never touch a real bucket
+R2_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="")
+R2_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
+R2_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
+R2_PHOTO_BUCKET = env("R2_PHOTO_BUCKET", default="")

@@ -336,3 +336,9 @@ PG_BIN_DIR = env("PG_BIN_DIR", default="")  # folder with pg_dump and pg_restore
 # Silences the spled.W001 deploy warning. It is a claim the app cannot verify:
 # only set it if the disk really survives restarts and redeploys.
 PHOTOS_ON_PERSISTENT_DISK = env.bool("PHOTOS_ON_PERSISTENT_DISK", default=False)
+
+# Step 51: off-site encrypted backups. Backups go to their own bucket with their own token.
+BACKUP_ENCRYPTION_KEY = env("BACKUP_ENCRYPTION_KEY", default="")  # make one: manage.py backup_key
+R2_BACKUP_BUCKET = env("R2_BACKUP_BUCKET", default="")
+R2_BACKUP_ACCESS_KEY_ID = env("R2_BACKUP_ACCESS_KEY_ID", default="")
+R2_BACKUP_SECRET_ACCESS_KEY = env("R2_BACKUP_SECRET_ACCESS_KEY", default="")

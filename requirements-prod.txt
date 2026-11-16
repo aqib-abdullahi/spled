@@ -3,3 +3,4 @@ whitenoise
 gunicorn
 django-storages[s3]==1.14.6
 boto3==1.44.3
+cryptography

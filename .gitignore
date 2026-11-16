@@ -230,3 +230,6 @@ staticfiles/
 
 # database backups (contain everything)
 backups/
+
+# local backup keys
+.env.backup

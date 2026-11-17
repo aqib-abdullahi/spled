@@ -25,3 +25,12 @@ def healthz(request):
         response = HttpResponse("ok", content_type="text/plain")
     response["Cache-Control"] = "no-store"
     return response
+
+
+@require_safe
+def livez(request):
+    """Is the process up? Touches nothing else, so a database outage never makes a host
+    restart a healthy app. /healthz/ is the check that includes the database."""
+    response = HttpResponse("ok", content_type="text/plain")
+    response["Cache-Control"] = "no-store"
+    return response

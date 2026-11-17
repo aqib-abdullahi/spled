@@ -209,13 +209,13 @@ class OffsiteCommandTests(TestCase):
         Path(args[args.index("--file") + 1]).write_bytes(self.dump_bytes)
         return ""
 
-    def run(self, command, **options):
+    def invoke(self, command, **options):
         out = io.StringIO()
         call_command(command, stdout=out, **options)
         return out.getvalue()
 
     def pull(self, **options):
-        return self.run("backup_pull", output_dir=str(self.tmp / "restored"), **options)
+        return self.invoke("backup_pull", output_dir=str(self.tmp / "restored"), **options)
 
     def add_photo(self, data=b"photo-bytes", error=None):
         photo = SimpleNamespace(
@@ -231,18 +231,18 @@ class OffsiteCommandTests(TestCase):
     def two_pushes(self):
         with mock.patch("registry.backup.utc_stamp",
                         side_effect=["20260101T000000Z", "20260102T000000Z"]):
-            self.run("backup_push", skip_photos=True)
+            self.invoke("backup_push", skip_photos=True)
             self.dump_bytes = b"second"
-            self.run("backup_push", skip_photos=True)
+            self.invoke("backup_push", skip_photos=True)
 
     def test_push_uploads_the_dump_then_the_manifest(self):
-        self.run("backup_push", skip_photos=True)
+        self.invoke("backup_push", skip_photos=True)
         self.assertEqual(len(self.remote.uploads), 2)
         self.assertTrue(self.remote.uploads[0].endswith(".dump.enc"))
         self.assertTrue(self.remote.uploads[1].endswith(".dump.json.enc"))
 
     def test_uploaded_files_are_encrypted_and_decrypt_to_the_original(self):
-        self.run("backup_push", skip_photos=True)
+        self.invoke("backup_push", skip_photos=True)
         dump_key = [k for k in self.remote.objects if k.endswith(".dump.enc")][0]
         manifest_key = [k for k in self.remote.objects if k.endswith(".dump.json.enc")][0]
         self.assertEqual(self.decrypt_object(dump_key), b"dump-bytes")
@@ -256,20 +256,20 @@ class OffsiteCommandTests(TestCase):
     def test_push_without_a_key_stops_before_dumping(self):
         with override_settings(BACKUP_ENCRYPTION_KEY=""):
             with self.assertRaises(CommandError) as ctx:
-                self.run("backup_push")
+                self.invoke("backup_push")
         self.assertIn("BACKUP_ENCRYPTION_KEY", str(ctx.exception))
         self.run_tool.assert_not_called()
         self.assertEqual(self.remote.uploads, [])
 
     def test_photos_are_encrypted_by_fingerprint_and_not_uploaded_twice(self):
         one, two = self.add_photo(b"one"), self.add_photo(b"two")
-        self.run("backup_push")
+        self.invoke("backup_push")
         for photo, data in ((one, b"one"), (two, b"two")):
             key = f"photos/{photo.sha256}.enc"
             self.assertEqual(self.decrypt_object(key), data)
             self.assertNotIn(data, self.remote.objects[key])
         before = len(self.remote.uploads)
-        out = self.run("backup_push")
+        out = self.invoke("backup_push")
         self.assertEqual(len(self.remote.uploads) - before, 2)  # only the database files
         self.assertIn("0 uploaded, 2 already backed up", out)
 
@@ -278,7 +278,7 @@ class OffsiteCommandTests(TestCase):
         bad.sha256 = "0" * 64
         fine = self.add_photo(b"fine")
         with self.assertRaises(CommandError) as ctx:
-            self.run("backup_push")
+            self.invoke("backup_push")
         self.assertIn("1 photo problem", str(ctx.exception))
         self.assertNotIn("photos/" + "0" * 64 + ".enc", self.remote.objects)
         self.assertIn(f"photos/{fine.sha256}.enc", self.remote.objects)
@@ -296,11 +296,11 @@ class OffsiteCommandTests(TestCase):
 
     def test_skip_photos_uploads_only_the_database(self):
         self.add_photo()
-        self.run("backup_push", skip_photos=True)
+        self.invoke("backup_push", skip_photos=True)
         self.assertEqual(self.remote.keys("photos/"), [])
 
     def test_keep_local_leaves_the_plain_dump_in_the_backups_folder(self):
-        self.run("backup_push", skip_photos=True, keep_local=True)
+        self.invoke("backup_push", skip_photos=True, keep_local=True)
         local = self.tmp / "local"
         dumps = list(local.glob("spled-*.dump"))
         self.assertEqual(len(dumps), 1)
@@ -322,7 +322,7 @@ class OffsiteCommandTests(TestCase):
         self.assertEqual((self.tmp / "restored" / "spled-20260101T000000Z.dump").read_bytes(), b"dump-bytes")
 
     def test_pull_with_the_wrong_key_leaves_nothing_behind(self):
-        self.run("backup_push", skip_photos=True)
+        self.invoke("backup_push", skip_photos=True)
         with override_settings(BACKUP_ENCRYPTION_KEY=crypto.generate_key()):
             with self.assertRaises(CommandError) as ctx:
                 self.pull()
@@ -331,7 +331,7 @@ class OffsiteCommandTests(TestCase):
         self.assertEqual(list(restored.glob("*")) if restored.exists() else [], [])
 
     def test_pull_never_overwrites_an_existing_file(self):
-        self.run("backup_push", skip_photos=True)
+        self.invoke("backup_push", skip_photos=True)
         self.pull()
         with self.assertRaises(CommandError) as ctx:
             self.pull()
@@ -339,14 +339,14 @@ class OffsiteCommandTests(TestCase):
 
     def test_check_passes_when_everything_is_backed_up(self):
         self.add_photo()
-        self.run("backup_push")
-        out = self.run("backup_check")
+        self.invoke("backup_push")
+        out = self.invoke("backup_check")
         self.assertIn("Photos: 1 of 1 backed up", out)
         self.assertIn("Off-site backups verified", out)
 
     def test_check_reports_a_photo_with_no_backup(self):
         self.add_photo()
-        self.run("backup_push", skip_photos=True)
+        self.invoke("backup_push", skip_photos=True)
         with self.assertRaises(CommandError):
             out = io.StringIO()
             call_command("backup_check", stdout=out)
@@ -354,12 +354,12 @@ class OffsiteCommandTests(TestCase):
 
     def test_deep_check_catches_a_damaged_backup_copy(self):
         photo = self.add_photo()
-        self.run("backup_push")
+        self.invoke("backup_push")
         key = f"photos/{photo.sha256}.enc"
         blob = bytearray(self.remote.objects[key])
         blob[-1] ^= 1
         self.remote.objects[key] = bytes(blob)
-        self.run("backup_check")  # the object exists, so the quick check passes
+        self.invoke("backup_check")  # the object exists, so the quick check passes
         with self.assertRaises(CommandError):
             out = io.StringIO()
             call_command("backup_check", deep=True, stdout=out)
@@ -367,8 +367,8 @@ class OffsiteCommandTests(TestCase):
 
     def test_check_fails_when_the_newest_backup_is_too_old(self):
         with mock.patch("registry.backup.utc_stamp", return_value="20200101T000000Z"):
-            self.run("backup_push", skip_photos=True)
-        self.run("backup_check")  # no age limit given
+            self.invoke("backup_push", skip_photos=True)
+        self.invoke("backup_check")  # no age limit given
         with self.assertRaises(CommandError):
             out = io.StringIO()
             call_command("backup_check", max_age_hours=24, stdout=out)
@@ -376,9 +376,9 @@ class OffsiteCommandTests(TestCase):
 
     def test_check_with_no_backups_fails(self):
         with self.assertRaises(CommandError) as ctx:
-            self.run("backup_check")
+            self.invoke("backup_check")
         self.assertIn("no database backups", str(ctx.exception))
 
     def test_backup_key_prints_a_usable_key(self):
-        first_line = self.run("backup_key").splitlines()[0]
+        first_line = self.invoke("backup_key").splitlines()[0]
         self.assertEqual(len(crypto.parse_key(first_line)), 32)

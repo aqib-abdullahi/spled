@@ -185,3 +185,9 @@ urlpatterns += [
     path("healthz/", health.healthz, name="healthz"),
     path("healthz", health.healthz),  # some monitors do not follow the redirect to the slash
 ]
+
+# Step 52: liveness check for hosts that restart unhealthy services
+urlpatterns += [
+    path("livez/", health.livez, name="livez"),
+    path("livez", health.livez),
+]

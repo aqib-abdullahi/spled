@@ -342,3 +342,25 @@ BACKUP_ENCRYPTION_KEY = env("BACKUP_ENCRYPTION_KEY", default="")  # make one: ma
 R2_BACKUP_BUCKET = env("R2_BACKUP_BUCKET", default="")
 R2_BACKUP_ACCESS_KEY_ID = env("R2_BACKUP_ACCESS_KEY_ID", default="")
 R2_BACKUP_SECRET_ACCESS_KEY = env("R2_BACKUP_SECRET_ACCESS_KEY", default="")
+
+# Step 52: running as a container on a host such as Render.
+from config.db_engine import use_postgis  # noqa: E402
+from config.hosts import render_hosts  # noqa: E402
+
+use_postgis(DATABASES)  # a provider's plain postgres:// URL still gets the PostGIS engine
+
+_render_hosts, _render_origins = render_hosts(os.environ.get("RENDER_EXTERNAL_HOSTNAME", ""))
+ALLOWED_HOSTS = list(ALLOWED_HOSTS) + [h for h in _render_hosts if h not in ALLOWED_HOSTS]
+CSRF_TRUSTED_ORIGINS = list(CSRF_TRUSTED_ORIGINS) + [
+    o for o in _render_origins if o not in CSRF_TRUSTED_ORIGINS
+]
+
+# Health checks arrive over plain http from inside the host's network. Only these paths
+# skip the HTTPS redirect.
+SECURE_REDIRECT_EXEMPT = [r"^livez/?$", r"^healthz/?$"]
+
+# Only needed if the system libraries are somewhere unusual (Linux).
+if env("GDAL_LIBRARY_PATH", default=""):
+    GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH")
+if env("GEOS_LIBRARY_PATH", default=""):
+    GEOS_LIBRARY_PATH = env("GEOS_LIBRARY_PATH")

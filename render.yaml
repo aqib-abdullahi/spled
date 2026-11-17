@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: spled-rehearsal
+    runtime: docker
+    plan: free
+    healthCheckPath: /livez/
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: BEHIND_PROXY
+        value: "True"
+      - key: TRUSTED_PROXY_COUNT
+        value: "1"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      # Rehearsal only: emails (verification links, password resets) print to the logs.
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.console.EmailBackend
+      - key: PHOTO_STORAGE
+        value: r2
+      # Secrets and account details: Render asks for these when you create the service.
+      - key: DATABASE_URL
+        sync: false
+      - key: R2_ENDPOINT_URL
+        sync: false
+      - key: R2_PHOTO_BUCKET
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      # First admin account: created once on startup if it does not exist yet.
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_NAME
+        sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false

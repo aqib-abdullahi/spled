@@ -13,7 +13,7 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY requirements.txt requirements-prod.txt ./
-RUN pip install -r requirements.txt
+RUN pip install -r requirements-prod.txt
 
 COPY . .
 

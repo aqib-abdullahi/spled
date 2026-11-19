@@ -22,7 +22,7 @@ RUN sed -i 's/\r$//' docker/entrypoint.sh && chmod +x docker/entrypoint.sh
 RUN DEBUG=False SECRET_KEY=build-only DATABASE_URL=postgis://build:build@localhost/build \
     python manage.py collectstatic --noinput
 
-RUN useraadd --system --no-create-home --uid 10001 spled \
+RUN useradd --system --no-create-home --uid 10001 spled \
  && mkdir -p /app/private_media \
  && chown spled /app/private_media
 USER spled

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: spled-rehearsal
+    name: spled
     runtime: docker
     plan: free
     healthCheckPath: /livez/

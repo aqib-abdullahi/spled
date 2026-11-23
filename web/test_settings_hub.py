@@ -84,9 +84,9 @@ class SettingsHubTests(TestCase):
     def test_menu_and_drawer_link_to_the_hub(self):
         self.set_role("viewer")
         r = self.client.get(reverse("overview"))
-        self.assertContains(r, 'href="%s"' % reverse("settings_hub"), count=2)
+        self.assertContains(r, 'href="%s"' % reverse("settings_hub"), count=3)
 
     def test_admin_menu_has_one_organisation_link(self):
         self.set_role("admin")
         r = self.client.get(reverse("overview"))
-        self.assertContains(r, 'href="%s"' % reverse("org_settings"), count=1)
+        self.assertContains(r, 'href="%s"' % reverse("org_settings"), count=2)

@@ -1,48 +1,95 @@
 {% extends "base.html" %}
 {% block body %}
-<header class="appbar">
-
-  <a class="brand" href="{% url 'overview' %}">
-    <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
-    Spled
-  </a>
-
-  <nav class="mainnav desktop-nav" aria-label="Main">
-    <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
-    <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-map fa-fw icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
-    <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-location-dot fa-fw icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
-    {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-check-double fa-fw icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
-    {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
-  </nav>
-
-  <details class="usermenu">
-    <summary aria-label="Account menu">
-      <span class="avatar">{{ request.user.full_name|slice:":1"|upper }}</span>
-      <span class="who">{{ request.user.full_name }}</span>
-      <i class="fa-solid fa-chevron-down fa-fw icon icon-xs" aria-hidden="true"></i>
-    </summary>
-    <div class="menu-panel">
-      <div>
-        <b>{{ request.user.full_name }}</b>
-        <div class="muted">{{ request.user.email }}</div>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Sidebar">
+    <a class="brand" href="{% url 'overview' %}">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+      Spled
+    </a>
+    {% with n=request.resolver_match.url_name %}
+    <nav class="sb-nav" aria-label="Main navigation">
+      <a class="sb-link" href="{% url 'overview' %}"{% if active == 'overview' or n == 'overview' %} aria-current="page"{% endif %}><i class="fa-solid fa-table-cells-large fa-fw icon" aria-hidden="true"></i><span>Overview</span></a>
+      <a class="sb-link" href="{% url 'sites' %}"{% if active == 'sites' or n == 'sites' or n == 'site_detail' or n == 'site_edit' or n == 'site_new' or n == 'evidence_new' or n == 'evidence_amend' or n == 'milestones' or n == 'share_links' %} aria-current="page"{% endif %}><i class="fa-solid fa-map fa-fw icon" aria-hidden="true"></i><span>Sites</span></a>
+      <a class="sb-link" href="{% url 'staff_map' %}"{% if active == 'map' or n == 'staff_map' %} aria-current="page"{% endif %}><i class="fa-solid fa-location-dot fa-fw icon" aria-hidden="true"></i><span>Map</span></a>
+      {% if nav_can_review %}<a class="sb-link" href="{% url 'review' %}"{% if active == 'review' or n == 'review' %} aria-current="page"{% endif %}><i class="fa-solid fa-check-double fa-fw icon" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %}<span class="sb-badge">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</a>{% endif %}
+      {% if nav_can_export %}<a class="sb-link" href="{% url 'reports' %}"{% if active == 'reports' or n == 'reports' or n == 'report_site' %} aria-current="page"{% endif %}><i class="fa-solid fa-file-lines fa-fw icon" aria-hidden="true"></i><span>Reports</span></a>{% endif %}
+    </nav>
+    {% if nav_can_team or nav_can_audit %}
+    <p class="sb-label">Manage</p>
+    <nav class="sb-nav" aria-label="Organisation navigation">
+      {% if nav_can_team %}<a class="sb-link" href="{% url 'team' %}"{% if n == 'team' %} aria-current="page"{% endif %}><i class="fa-solid fa-users fa-fw icon" aria-hidden="true"></i><span>Team</span></a>{% endif %}
+      {% if nav_can_audit %}<a class="sb-link" href="{% url 'audit_log' %}"{% if n == 'audit_log' %} aria-current="page"{% endif %}><i class="fa-solid fa-clipboard-list fa-fw icon" aria-hidden="true"></i><span>Audit log</span></a>{% endif %}
+      {% if nav_can_audit %}<a class="sb-link" href="{% url 'org_settings' %}"{% if n == 'org_settings' %} aria-current="page"{% endif %}><i class="fa-solid fa-building fa-fw icon" aria-hidden="true"></i><span>Organisation</span></a>{% endif %}
+    </nav>
+    {% endif %}
+    <div class="sb-bottom">
+      <a class="sb-link" href="{% url 'settings_hub' %}"{% if active == 'settings' or active == 'security' or n == 'settings_hub' or n == 'account_security' %} aria-current="page"{% endif %}><i class="fa-solid fa-gear fa-fw icon" aria-hidden="true"></i><span>Settings</span></a>
+      <div class="sb-user">
+        <span class="avatar">{{ request.user.full_name|slice:":1"|upper }}</span>
+        <div><b>{{ request.user.full_name }}</b><small>{{ request.user.email }}</small></div>
       </div>
-      <a href="{% url 'profile' %}"><span class="menu-item"><i class="fa-solid fa-user fa-fw icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
-      {% if nav_can_audit %}<a href="{% url 'org_settings' %}"><span class="menu-item"><i class="fa-solid fa-building fa-fw icon icon-sm" aria-hidden="true"></i><span>Organisation</span></span></a>{% endif %}
-      {% if nav_can_team %}<a href="{% url 'team' %}"><span class="menu-item"><i class="fa-solid fa-users fa-fw icon icon-sm" aria-hidden="true"></i><span>Team</span></span></a>{% endif %}
-      {% if nav_can_audit %}<a href="{% url 'audit_log' %}"><span class="menu-item"><i class="fa-solid fa-clipboard-list fa-fw icon icon-sm" aria-hidden="true"></i><span>Audit log</span></span></a>{% endif %}
-      <a href="{% url 'settings_hub' %}"><span class="menu-item"><i class="fa-solid fa-gear fa-fw icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
-      {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"><span class="menu-item"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
-      <a href="{% url 'account_security' %}"><span class="menu-item"><i class="fa-solid fa-lock fa-fw icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
+      <a class="sb-link" href="{% url 'profile' %}"{% if n == 'profile' %} aria-current="page"{% endif %}><i class="fa-solid fa-user fa-fw icon" aria-hidden="true"></i><span>Profile</span></a>
       <form method="post" action="{% url 'signout' %}">
         {% csrf_token %}
-        <button class="btn btn-small" type="submit"><span class="menu-item"><i class="fa-solid fa-right-from-bracket fa-fw icon icon-sm" aria-hidden="true"></i><span>Sign out</span></span></button>
+        <button class="sb-link sb-button" type="submit"><i class="fa-solid fa-right-from-bracket fa-fw icon" aria-hidden="true"></i><span>Sign out</span></button>
       </form>
     </div>
-  </details>
-  <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobile-nav">
-    <span></span><span></span><span></span>
-  </button>
-</header>
+    {% endwith %}
+  </aside>
+
+  <div class="app-main">
+    <header class="appbar">
+
+      <a class="brand" href="{% url 'overview' %}">
+        <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E2A24" stroke="#3DDBB0" stroke-width="1.5"/><path d="M7 12h18M7 20h18M13 7v18M21 7v18" stroke="#3DDBB0" stroke-width="1.5"/><circle cx="21" cy="12" r="3" fill="#3DDBB0"/></svg>
+        Spled
+      </a>
+
+      <nav class="mainnav desktop-nav" aria-label="Main">
+        <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
+        <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-map fa-fw icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
+        <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-location-dot fa-fw icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
+        {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-check-double fa-fw icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
+        {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
+      </nav>
+
+      <details class="usermenu">
+        <summary aria-label="Account menu">
+          <span class="avatar">{{ request.user.full_name|slice:":1"|upper }}</span>
+          <span class="who">{{ request.user.full_name }}</span>
+          <i class="fa-solid fa-chevron-down fa-fw icon icon-xs" aria-hidden="true"></i>
+        </summary>
+        <div class="menu-panel">
+          <div>
+            <b>{{ request.user.full_name }}</b>
+            <div class="muted">{{ request.user.email }}</div>
+          </div>
+          <a href="{% url 'profile' %}"><span class="menu-item"><i class="fa-solid fa-user fa-fw icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
+          {% if nav_can_audit %}<a href="{% url 'org_settings' %}"><span class="menu-item"><i class="fa-solid fa-building fa-fw icon icon-sm" aria-hidden="true"></i><span>Organisation</span></span></a>{% endif %}
+          {% if nav_can_team %}<a href="{% url 'team' %}"><span class="menu-item"><i class="fa-solid fa-users fa-fw icon icon-sm" aria-hidden="true"></i><span>Team</span></span></a>{% endif %}
+          {% if nav_can_audit %}<a href="{% url 'audit_log' %}"><span class="menu-item"><i class="fa-solid fa-clipboard-list fa-fw icon icon-sm" aria-hidden="true"></i><span>Audit log</span></span></a>{% endif %}
+          <a href="{% url 'settings_hub' %}"><span class="menu-item"><i class="fa-solid fa-gear fa-fw icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
+          {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"><span class="menu-item"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
+          <a href="{% url 'account_security' %}"><span class="menu-item"><i class="fa-solid fa-lock fa-fw icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
+          <form method="post" action="{% url 'signout' %}">
+            {% csrf_token %}
+            <button class="btn btn-small" type="submit"><span class="menu-item"><i class="fa-solid fa-right-from-bracket fa-fw icon icon-sm" aria-hidden="true"></i><span>Sign out</span></span></button>
+          </form>
+        </div>
+      </details>
+      <button class="nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="mobile-nav">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <main class="page {% block page_class %}{% endblock %}">
+      {% for message in messages %}
+            <div class="flash flash-{{ message.tags }}" role="status">{{ message }}</div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
 
 <div class="mobile-nav-backdrop" aria-hidden="true"></div>
 <nav id="mobile-nav" class="mainnav mobile-nav" aria-label="Main mobile navigation">
@@ -59,13 +106,6 @@
   <a href="{% url 'account_security' %}"{% if active == 'security' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-lock fa-fw icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
   <a href="{% url 'settings_hub' %}"{% if active == 'settings' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-gear fa-fw icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
 </nav>
-
-<main class="page">
-  {% for message in messages %}
-        <div class="flash flash-{{ message.tags }}" role="status">{{ message }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
-</main>
 
 <script>
   document.addEventListener("click", function (e) {

@@ -1567,3 +1567,95 @@ b, strong { font-weight: 600; }
 .feature-icon .fa-solid.icon, .lp-icon .fa-solid.icon { font-size: 22px; }
 .settings-card .fa-solid.icon { font-size: 26px; }
 .empty-state .fa-solid.icon { font-size: 32px; }
+
+/* Step 62: dashboard navigation moves to a side panel from 1024px up, and the content
+   uses the whole width. Below 1024px the top bar and the drawer are unchanged. */
+.app-shell { display: block; }
+.sidebar { display: none; }
+
+@media print {
+  .sidebar, .app-main > .appbar { display: none !important; }
+  .app-shell { display: block !important; }
+}
+
+@media (min-width: 1024px) {
+  .app-shell { display: grid; grid-template-columns: 232px minmax(0, 1fr); align-items: start; min-height: 100dvh; }
+  .app-main { min-width: 0; }
+  .app-main > .appbar { display: none; }
+
+  .sidebar {
+    display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100dvh;
+    overflow-y: auto; padding: 20px 14px 16px; color: #fff;
+    background: linear-gradient(180deg, #0c1c21, #10272d); border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .sidebar .brand { color: #fff; padding: 4px 10px 16px; }
+  .sidebar :focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .sb-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sb-label {
+    margin: 16px 10px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: rgba(255,255,255,0.42);
+  }
+  .sb-link {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
+    color: rgba(255,255,255,0.78); font-weight: 500; font-size: 14px; line-height: 1.2;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .sb-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
+  .sb-link[aria-current="page"] {
+    background: rgba(45, 212, 165, 0.12); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 var(--mint);
+  }
+  .sidebar .fa-solid.icon { font-size: 17px; width: 1.3em; text-align: center; opacity: 0.95; }
+  .sb-badge {
+    margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--mint); color: var(--ink); font-size: 11px; font-weight: 600; line-height: 1;
+  }
+  .sb-bottom {
+    margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .sb-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 8px; min-width: 0; }
+  .sb-user > div { min-width: 0; display: flex; flex-direction: column; }
+  .sb-user b { color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sb-user small { color: rgba(255,255,255,0.55); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sb-button { width: 100%; background: none; border: 0; font: inherit; text-align: left; cursor: pointer; }
+
+  /* The page uses the whole width next to the panel */
+  .app-main > .page { max-width: none; margin: 0; padding: 28px clamp(20px, 2.6vw, 44px) 48px; }
+
+  /* Site rows choose a layout from their own card's width, not the window's */
+  .app-main .sitelist { container-type: inline-size; }
+  @container (min-width: 720px) {
+    .app-main .sitelist .siterow { grid-template-columns: minmax(160px, 2fr) 100px 130px 90px minmax(100px, 1fr) auto; }
+  }
+  @container (max-width: 719px) {
+    .app-main .sitelist .siterow { grid-template-columns: minmax(0, 1fr) auto; }
+  }
+
+  /* Detail page: evidence takes the room, the side column stays a fixed width */
+  .app-main .detailgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 400px); gap: 24px; align-items: start; }
+  .app-main .detailgrid .main { width: auto; max-width: none; }
+  .app-main .detailgrid .side { width: auto; }
+
+  /* Forms flow across the card instead of stopping at 760px */
+  .app-main .formgrid { max-width: none; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+  .app-main .formgrid .wide, .app-main .formgrid .actions { grid-column: 1 / -1; }
+
+  .app-main .mapbox-tall { height: clamp(480px, 64vh, 820px); }
+}
+
+/* Between 1024px and 1279px the overview has room for one column only */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .app-main .overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .app-main .quick-actions { flex-direction: row; flex-wrap: wrap; }
+  .app-main .quick-actions .action-pill { flex: 1 1 220px; }
+}
+
+/* Pages made of cards sit in two columns when there is room */
+@media (min-width: 1280px) {
+  .page-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
+  .page-cols > div, .page-cols > .flash, .page-cols > .notice, .page-cols > .alert { grid-column: 1 / -1; }
+  .page-cols > section[aria-label="Members"] { grid-column: 1; grid-row: 2 / span 3; }
+  .page-cols > section[aria-label="Invite someone"] { grid-column: 2; grid-row: 2; }
+  .page-cols > section[aria-label="Open invitations"] { grid-column: 2; grid-row: 3; }
+}

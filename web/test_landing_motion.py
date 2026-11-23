@@ -30,7 +30,7 @@ class LandingMotionTests(TestCase):
 
     def test_landing_links_are_underlined_and_audience_cards_are_clickable(self):
         css = self.css()
-        self.assertIn("text-decoration: underline", css)
+        self.assertIn("Step 56", css)
         self.assertIn(".lp-aud .lp-link::before", css)
     
     def test_cards_bulge_and_cast_a_shadow_on_hover(self):
@@ -38,3 +38,13 @@ class LandingMotionTests(TestCase):
         self.assertIn("Step 47d", css)
         self.assertIn("scale(1.025)", css)
         self.assertIn("0 24px 48px", css)
+
+
+class LinkStyleTests(TestCase):
+    def test_links_have_no_arrows_or_underlines_after_step_56(self):
+        text = CSS.read_text(encoding="utf-8")
+        block = text[text.index("Step 56"):]
+        self.assertIn("content: none", block)
+        self.assertNotIn('content: "\u2192"', block)
+        self.assertIn("text-decoration: none", block)
+        self.assertNotIn("text-decoration: underline", block)

@@ -13,7 +13,7 @@
     <div class="alert" role="alert">{{ error }}</div>
   {% endfor %}
   <div class="field">
-    <label for="id_username">Work email</label>
+    <label for="id_username">Email</label>
     <input type="email" name="username" id="id_username" autocomplete="username"
            placeholder="you@organisation.com" required autofocus
            value="{{ form.username.value|default:'' }}">

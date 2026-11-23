@@ -1461,3 +1461,88 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
     z-index: 1;
   }
 }
+
+/* Step 55: sign-in pages scroll when the content is taller than the window,
+   and sign-up uses the same spacing as sign-in on phones */
+.auth-layout { height: auto; min-height: 100dvh; overflow: visible; }
+.split-main { justify-content: flex-start; padding: 64px 32px 40px; }
+.split-main > .stack { margin-block: auto; }
+
+@media (max-width: 800px) {
+  .split-main { padding: 56px 20px 48px; }
+  .auth-form { gap: 20px; }
+  .auth-form .field { gap: 6px; }
+  .auth-form .field input { height: 48px; }
+}
+
+/* Step 56: links look like the other links: no arrows, no underlines */
+.lp-link::after, .lp .lp-link::after { content: none; }
+.lp .lp-link, .lp .lp-link:hover { text-decoration: none; }
+.lp .lp-link { color: var(--ink); }
+.lp .lp-link:hover { color: var(--mint-strong); }
+.lp .lp-head p a, .lp .lp-faq details p a, .faq details a, .prose a:not(.btn) {
+  text-decoration: none; font-weight: 700; color: var(--lp-link, #0b6b52);
+}
+.lp .lp-head p a:hover, .lp .lp-faq details p a:hover, .faq details a:hover, .prose a:not(.btn):hover {
+  text-decoration: none; color: var(--mint-strong);
+}
+.sitefoot nav a:hover { text-decoration: none; color: var(--mint-strong); }
+.auth-back, .auth-back:hover, .auth-public-link, .auth-public-link:hover { text-decoration: none; }
+
+/* Step 57: client-side validation */
+.field input[aria-invalid="true"],
+.field select[aria-invalid="true"],
+.field textarea[aria-invalid="true"] {
+  border-color: var(--danger); box-shadow: 0 0 0 3px rgba(164, 55, 55, 0.14);
+}
+.field-error[data-client-error] { margin-top: 2px; }
+
+/* Step 59: a spinning ring replaces the button label while a valid form is being sent */
+@keyframes spled-spin { to { transform: rotate(360deg); } }
+@keyframes spled-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.btn.is-loading, button.is-loading {
+  position: relative; color: transparent !important; text-shadow: none; transform: none; box-shadow: none;
+}
+.btn.is-loading[aria-disabled="true"] { opacity: 1; }
+.is-loading > :not([data-loading-note]) { visibility: hidden; }
+.is-loading::after {
+  content: ""; position: absolute; top: 50%; left: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border: 2.5px solid var(--spinner-color, #888); border-right-color: transparent; border-radius: 50%;
+  animation: spled-spin 0.7s linear infinite;
+}
+.is-loading > [data-loading-note] {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-loading::after { animation: spled-pulse 1.4s ease-in-out infinite; border-right-color: var(--spinner-color, #888); }
+}
+
+/* Step 60: smaller type. Body 14px -> 13px, headings about 18% smaller.
+   Inputs are untouched: on phones they must stay 16px or iPhones zoom in on tap. */
+body { font-size: 13px; }
+.brand, .auth-mobile-brand { font-size: 20px; }
+.sitefoot .brand { font-size: 18px; }
+
+.page h1 { font-size: 28px; }
+.overview-head h1 { font-size: clamp(1.7rem, 2.4vw, 2.3rem); }
+.stat-num { font-size: 28px; }
+.split-side h2 { font-size: 34px; }
+
+.sitelist h2, .attention-list h2, .settings-heading,
+.page h2[style*="font-size:20px"] { font-size: 17px !important; }
+.settings-card h3, .empty-state h3 { font-size: 16px; }
+.pcard h3 { font-size: 16px; }
+
+.lp-hero h1 { font-size: clamp(1.8rem, 4.4vw, 3rem); }
+.lp-lede { font-size: 1rem; }
+.lp-head h2, .lp-trust h2, .lp-cta h2 { font-size: clamp(1.4rem, 2.6vw, 1.8rem); }
+.lp-nums b { font-size: clamp(1.4rem, 2.4vw, 1.8rem); }
+.lp-card h3, .aud-card h3 { font-size: 16px; }
+
+.prose h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+.prose h2 { font-size: 19px; }
+
+@media (max-width: 800px) {
+  .page h1 { font-size: 24px; }
+  .stat-num { font-size: 24px; }
+}

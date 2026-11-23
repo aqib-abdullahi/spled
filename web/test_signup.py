@@ -251,3 +251,103 @@ class PasswordResetTests(TestCase):
         )
         self.assertEqual(r.status_code, 200)
         self.assertTrue(self.client.login(username="p@example.com", password=OLD))
+
+
+# --- Step 57: client-side validation ---
+import re  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from django.conf import settings  # noqa: E402
+from django.test import TestCase  # noqa: E402
+from django.urls import reverse  # noqa: E402
+
+VALIDATE_JS = Path(settings.BASE_DIR) / "static" / "js" / "spled-validate.js"
+
+
+class ClientValidationWiringTests(TestCase):
+    def test_pages_load_the_validation_script_deferred(self):
+        for name in ("signin", "signup", "home"):
+            with self.subTest(page=name):
+                r = self.client.get(reverse(name))
+                self.assertContains(r, "js/spled-validate.js")
+                self.assertContains(r, "spled-validate.js\" defer></script>")
+
+    def test_password_length_in_the_script_matches_the_server_rule(self):
+        server = next(
+            v["OPTIONS"]["min_length"]
+            for v in settings.AUTH_PASSWORD_VALIDATORS
+            if v["NAME"].endswith("MinimumLengthValidator") and "OPTIONS" in v
+        )
+        text = VALIDATE_JS.read_text(encoding="utf-8")
+        client = int(re.search(r"var MIN_PASSWORD = (\d+);", text).group(1))
+        self.assertEqual(client, server)
+
+    def test_the_script_never_sends_what_people_type_anywhere(self):
+        text = VALIDATE_JS.read_text(encoding="utf-8")
+        for banned in ("fetch(", "XMLHttpRequest", "sendBeacon", "WebSocket",
+                       "localStorage", "sessionStorage", "document.cookie"):
+            with self.subTest(banned=banned):
+                self.assertNotIn(banned, text)
+
+    def test_server_rendered_fields_carry_the_attributes_the_script_relies_on(self):
+        r = self.client.get(reverse("signup"))
+        self.assertContains(r, 'type="email"')
+        self.assertContains(r, "required")
+        self.assertContains(r, "novalidate")
+        self.assertContains(r, 'name="password1"')
+
+    def test_invalid_field_styles_exist(self):
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+        self.assertIn('[aria-invalid="true"]', css)
+
+
+class ClientSubmitTests(TestCase):
+    def js(self):
+        return VALIDATE_JS.read_text(encoding="utf-8")
+
+    def test_messages_appear_only_when_the_button_is_pressed(self):
+        text = self.js()
+        for gone in ("focusout", "refreshGate", "is-gated", "form-gate-hint", "pointerdown"):
+            with self.subTest(gone=gone):
+                self.assertNotIn(gone, text)
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+        self.assertNotIn("Step 58", css)
+
+    def test_a_valid_form_shows_a_spinner_and_cannot_be_sent_twice(self):
+        text = self.js()
+        for needle in ("is-loading", "data-loading-note", "aria-busy", "SUBMIT_LOCK_MS", "data-allow-repeat"):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, text)
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+        block = css[css.index("Step 59"):]
+        self.assertIn("@keyframes spled-spin", block)
+        self.assertIn(".is-loading::after", block)
+        self.assertIn("prefers-reduced-motion", block)
+
+    def test_the_submit_button_is_never_really_disabled(self):
+        # a disabled button drops its name and value from what the browser sends
+        text = self.js()
+        self.assertNotIn(".disabled = true", text)
+        self.assertNotIn('setAttribute("disabled"', text)
+
+    def test_going_back_restores_the_button(self):
+        text = self.js()
+        self.assertIn('"pageshow"', text)
+        self.assertIn("e.persisted", text)
+
+
+
+
+class TypeScaleTests(TestCase):
+    def block(self):
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+        return css[css.index("Step 60"):]
+
+    def test_body_text_is_13px_and_headings_are_smaller(self):
+        block = self.block()
+        self.assertIn("body { font-size: 13px; }", block)
+        self.assertIn(".page h1 { font-size: 28px; }", block)
+
+    def test_inputs_are_left_alone_so_phones_do_not_zoom_in(self):
+        self.assertNotIn(".field input", self.block())
+        self.assertNotIn("input {", self.block())

@@ -148,3 +148,22 @@ class IconTests(TestCase):
         self.assertTrue((FA_DIR / "webfonts" / "fa-solid-900.woff2").is_file())
         css = (FA_DIR / "css" / "all.min.css").read_text(encoding="utf-8", errors="replace")
         self.assertIn("fa-solid-900", css)
+
+
+
+class WeightTests(TestCase):
+    def css(self):
+        return (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+
+    def test_no_text_is_heavier_than_700(self):
+        weights = [int(w) for w in re.findall(r"font-weight:\s*(\d+)", self.css())]
+        self.assertTrue(weights)
+        self.assertLessEqual(max(weights), 700)
+
+    def test_body_text_is_regular_weight(self):
+        self.assertRegex(self.css(), r"body\s*\{[^}]*font-weight:\s*400")
+
+    def test_bold_text_is_semi_bold_and_icons_are_larger(self):
+        block = self.css()[self.css().index("Step 63"):]
+        self.assertIn("b, strong { font-weight: 600; }", block)
+        self.assertIn(".fa-solid.icon-sm { font-size: 16px; }", block)

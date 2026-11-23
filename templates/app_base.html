@@ -8,34 +8,34 @@
   </a>
 
   <nav class="mainnav desktop-nav" aria-label="Main">
-    <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
-    <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map" class="icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
-    <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
-    {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="check-check" class="icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
-    {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="file-text" class="icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
+    <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
+    <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-map fa-fw icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
+    <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-location-dot fa-fw icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
+    {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-check-double fa-fw icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
+    {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
   </nav>
 
   <details class="usermenu">
     <summary aria-label="Account menu">
       <span class="avatar">{{ request.user.full_name|slice:":1"|upper }}</span>
       <span class="who">{{ request.user.full_name }}</span>
-      <i data-lucide="chevron-down" class="icon icon-xs" aria-hidden="true"></i>
+      <i class="fa-solid fa-chevron-down fa-fw icon icon-xs" aria-hidden="true"></i>
     </summary>
     <div class="menu-panel">
       <div>
         <b>{{ request.user.full_name }}</b>
         <div class="muted">{{ request.user.email }}</div>
       </div>
-      <a href="{% url 'profile' %}"><span class="menu-item"><i data-lucide="user" class="icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
-      {% if nav_can_audit %}<a href="{% url 'org_settings' %}"><span class="menu-item"><i data-lucide="building-2" class="icon icon-sm" aria-hidden="true"></i><span>Organisation</span></span></a>{% endif %}
-      {% if nav_can_team %}<a href="{% url 'team' %}"><span class="menu-item"><i data-lucide="users" class="icon icon-sm" aria-hidden="true"></i><span>Team</span></span></a>{% endif %}
-      {% if nav_can_audit %}<a href="{% url 'audit_log' %}"><span class="menu-item"><i data-lucide="clipboard-list" class="icon icon-sm" aria-hidden="true"></i><span>Audit log</span></span></a>{% endif %}
-      <a href="{% url 'settings_hub' %}"><span class="menu-item"><i data-lucide="settings" class="icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
-      {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"><span class="menu-item"><i data-lucide="file-text" class="icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
-      <a href="{% url 'account_security' %}"><span class="menu-item"><i data-lucide="shield" class="icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
+      <a href="{% url 'profile' %}"><span class="menu-item"><i class="fa-solid fa-user fa-fw icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
+      {% if nav_can_audit %}<a href="{% url 'org_settings' %}"><span class="menu-item"><i class="fa-solid fa-building fa-fw icon icon-sm" aria-hidden="true"></i><span>Organisation</span></span></a>{% endif %}
+      {% if nav_can_team %}<a href="{% url 'team' %}"><span class="menu-item"><i class="fa-solid fa-users fa-fw icon icon-sm" aria-hidden="true"></i><span>Team</span></span></a>{% endif %}
+      {% if nav_can_audit %}<a href="{% url 'audit_log' %}"><span class="menu-item"><i class="fa-solid fa-clipboard-list fa-fw icon icon-sm" aria-hidden="true"></i><span>Audit log</span></span></a>{% endif %}
+      <a href="{% url 'settings_hub' %}"><span class="menu-item"><i class="fa-solid fa-gear fa-fw icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
+      {% if nav_can_export %}<a class="reports-link" href="{% url 'reports' %}"><span class="menu-item"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
+      <a href="{% url 'account_security' %}"><span class="menu-item"><i class="fa-solid fa-lock fa-fw icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
       <form method="post" action="{% url 'signout' %}">
         {% csrf_token %}
-        <button class="btn btn-small" type="submit"><span class="menu-item"><i data-lucide="log-out" class="icon icon-sm" aria-hidden="true"></i><span>Sign out</span></span></button>
+        <button class="btn btn-small" type="submit"><span class="menu-item"><i class="fa-solid fa-right-from-bracket fa-fw icon icon-sm" aria-hidden="true"></i><span>Sign out</span></span></button>
       </form>
     </div>
   </details>
@@ -50,14 +50,14 @@
     <span>Menu</span>
     <button class="nav-close" type="button" aria-label="Close navigation">×</button>
   </div>
-  <a href="{% url 'profile' %}"><span class="nav-link"><i data-lucide="user" class="icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
-  <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
-  <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map" class="icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
-  <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
-  {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="check-check" class="icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
-  {% if nav_can_export %}<a href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="file-text" class="icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
-  <a href="{% url 'account_security' %}"{% if active == 'security' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="shield" class="icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
-  <a href="{% url 'settings_hub' %}"{% if active == 'settings' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="settings" class="icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
+  <a href="{% url 'profile' %}"><span class="nav-link"><i class="fa-solid fa-user fa-fw icon icon-sm" aria-hidden="true"></i><span>Profile</span></span></a>
+  <a href="{% url 'overview' %}"{% if active == 'overview' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Overview</span></span></a>
+  <a href="{% url 'sites' %}"{% if active == 'sites' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-map fa-fw icon icon-sm" aria-hidden="true"></i><span>Sites</span></span></a>
+  <a href="{% url 'staff_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-location-dot fa-fw icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
+  {% if nav_can_review %}<a href="{% url 'review' %}"{% if active == 'review' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-check-double fa-fw icon icon-sm" aria-hidden="true"></i><span>Review</span>{% if nav_pending_count %} <span class="count">{% if nav_pending_count > 99 %}99+{% else %}{{ nav_pending_count }}{% endif %}</span>{% endif %}</span></a>{% endif %}
+  {% if nav_can_export %}<a href="{% url 'reports' %}"{% if active == 'reports' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-file-lines fa-fw icon icon-sm" aria-hidden="true"></i><span>Reports</span></span></a>{% endif %}
+  <a href="{% url 'account_security' %}"{% if active == 'security' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-lock fa-fw icon icon-sm" aria-hidden="true"></i><span>Security</span></span></a>
+  <a href="{% url 'settings_hub' %}"{% if active == 'settings' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-gear fa-fw icon icon-sm" aria-hidden="true"></i><span>Settings</span></span></a>
 </nav>
 
 <main class="page">

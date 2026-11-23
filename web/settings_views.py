@@ -21,7 +21,7 @@ def settings_hub(request):
     membership = get_current_membership(request)
     account_cards = [
         _card("Profile", "Your name, time zone and password.", "profile", "user"),
-        _card("Security", "Two-step verification and backup codes.", "account_security", "shield"),
+        _card("Security", "Two-step verification and backup codes.", "account_security", "lock"),
     ]
     org_cards = []
     org = None
@@ -32,7 +32,7 @@ def settings_hub(request):
             org_cards.append(_card(
                 "Organisation",
                 "Public name, quiet-site threshold, on-site rule and auto-publishing.",
-                "org_settings", "building-2",
+                "org_settings", "building",
             ))
         if can(user, MANAGE_TEAM, org):
             org_cards.append(_card(
@@ -45,7 +45,7 @@ def settings_hub(request):
             ))
         if can(user, EXPORT_REPORTS, org):
             org_cards.append(_card(
-                "Reports", "Portfolio CSV and printable site reports.", "reports", "file-text",
+                "Reports", "Portfolio CSV and printable site reports.", "reports", "file-lines",
             ))
     return render(request, "settings_hub.html", {
         "active": "settings",

@@ -1546,3 +1546,12 @@ body { font-size: 13px; }
   .page h1 { font-size: 24px; }
   .stat-num { font-size: 24px; }
 }
+
+/* Step 61: Font Awesome Solid icons (bold, a font, so sized with font-size) */
+.fa-solid.icon { width: 1.25em; height: 1em; font-size: 1em; line-height: 1; text-align: center; stroke: none; opacity: 0.95; }
+.fa-solid.icon-sm { font-size: 14px; }
+.fa-solid.icon-xs { font-size: 11px; }
+.feature-icon .fa-solid.icon, .lp-icon .fa-solid.icon { font-size: 18px; }
+.settings-card .fa-solid.icon { font-size: 22px; width: 1.25em; height: 1em; margin-top: 4px; }
+.empty-state .fa-solid.icon { font-size: 28px; width: auto; }
+.usermenu summary .fa-solid.icon { font-size: 11px; }

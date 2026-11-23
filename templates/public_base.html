@@ -6,9 +6,9 @@
     Spled <span class="mono pubtag">public record</span>
   </a>
   <nav class="mainnav desktop-nav" aria-label="Main">
-    <a href="{% url 'projects' %}"{% if active == 'projects' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Projects</span></span></a>
-    <a href="{% url 'public_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
-    <a href="{% url 'how_it_works' %}"{% if active == 'how' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="shield-check" class="icon icon-sm" aria-hidden="true"></i><span>How evidence works</span></span></a>
+    <a href="{% url 'projects' %}"{% if active == 'projects' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Projects</span></span></a>
+    <a href="{% url 'public_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-location-dot fa-fw icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
+    <a href="{% url 'how_it_works' %}"{% if active == 'how' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-shield-halved fa-fw icon icon-sm" aria-hidden="true"></i><span>How evidence works</span></span></a>
   </nav>
   <div class="pub-actions">
     {% if request.user.is_authenticated %}
@@ -28,15 +28,15 @@
     <span>Menu</span>
     <button class="nav-close" type="button" aria-label="Close navigation">×</button>
   </div>
-  <a href="{% url 'projects' %}"{% if active == 'projects' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Projects</span></span></a>
-  <a href="{% url 'public_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="map-pin" class="icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
-  <a href="{% url 'how_it_works' %}"{% if active == 'how' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="shield-check" class="icon icon-sm" aria-hidden="true"></i><span>How evidence works</span></span></a>
-  <a href="{% url 'about' %}"{% if active == 'about' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="info" class="icon icon-sm" aria-hidden="true"></i><span>About</span></span></a>
-  <a href="{% url 'contact' %}"{% if active == 'contact' %} aria-current="page"{% endif %}><span class="nav-link"><i data-lucide="mail" class="icon icon-sm" aria-hidden="true"></i><span>Contact</span></span></a>
+  <a href="{% url 'projects' %}"{% if active == 'projects' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Projects</span></span></a>
+  <a href="{% url 'public_map' %}"{% if active == 'map' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-location-dot fa-fw icon icon-sm" aria-hidden="true"></i><span>Map</span></span></a>
+  <a href="{% url 'how_it_works' %}"{% if active == 'how' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-shield-halved fa-fw icon icon-sm" aria-hidden="true"></i><span>How evidence works</span></span></a>
+  <a href="{% url 'about' %}"{% if active == 'about' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-circle-info fa-fw icon icon-sm" aria-hidden="true"></i><span>About</span></span></a>
+  <a href="{% url 'contact' %}"{% if active == 'contact' %} aria-current="page"{% endif %}><span class="nav-link"><i class="fa-solid fa-envelope fa-fw icon icon-sm" aria-hidden="true"></i><span>Contact</span></span></a>
   {% if request.user.is_authenticated %}
-  <a class="drawer-foot" href="{% url 'overview' %}"><span class="nav-link"><i data-lucide="layout-grid" class="icon icon-sm" aria-hidden="true"></i><span>Dashboard</span></span></a>
+  <a class="drawer-foot" href="{% url 'overview' %}"><span class="nav-link"><i class="fa-solid fa-table-cells-large fa-fw icon icon-sm" aria-hidden="true"></i><span>Dashboard</span></span></a>
   {% else %}
-  <a class="drawer-foot" href="{% url 'signin' %}"><span class="nav-link"><i data-lucide="log-in" class="icon icon-sm" aria-hidden="true"></i><span>Sign in</span></span></a>
+  <a class="drawer-foot" href="{% url 'signin' %}"><span class="nav-link"><i class="fa-solid fa-right-to-bracket fa-fw icon icon-sm" aria-hidden="true"></i><span>Sign in</span></span></a>
   {% endif %}
 </nav>
 <main class="page pubpage">

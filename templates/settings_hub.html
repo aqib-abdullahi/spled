@@ -11,7 +11,7 @@
   <div class="settings-grid">
     {% for c in account_cards %}
       <a class="card settings-card" href="{{ c.url }}">
-        <i data-lucide="{{ c.icon }}" class="icon" aria-hidden="true"></i>
+        <i class="fa-solid fa-{{ c.icon }} fa-fw icon" aria-hidden="true"></i>
         <div><h3>{{ c.title }}</h3><p class="muted">{{ c.text }}</p></div>
       </a>
     {% endfor %}
@@ -24,7 +24,7 @@
   <div class="settings-grid">
     {% for c in org_cards %}
       <a class="card settings-card" href="{{ c.url }}">
-        <i data-lucide="{{ c.icon }}" class="icon" aria-hidden="true"></i>
+        <i class="fa-solid fa-{{ c.icon }} fa-fw icon" aria-hidden="true"></i>
         <div><h3>{{ c.title }}</h3><p class="muted">{{ c.text }}</p></div>
       </a>
     {% endfor %}

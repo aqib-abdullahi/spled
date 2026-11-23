@@ -73,7 +73,7 @@
   </div>
   <div class="lp-grid-3">
     <article class="lp-card lp-aud">
-      <span class="lp-icon"><i data-lucide="building-2" class="icon" aria-hidden="true"></i></span>
+      <span class="lp-icon"><i class="fa-solid fa-building fa-fw icon" aria-hidden="true"></i></span>
       <h3>Agencies and developers</h3>
       <p>Log evidence, review it, publish when ready.</p>
       {% if request.user.is_authenticated %}
@@ -83,13 +83,13 @@
       {% endif %}
     </article>
     <article class="lp-card lp-aud">
-      <span class="lp-icon"><i data-lucide="map-pin" class="icon" aria-hidden="true"></i></span>
+      <span class="lp-icon"><i class="fa-solid fa-location-dot fa-fw icon" aria-hidden="true"></i></span>
       <h3>Owners watching from afar</h3>
       <p>Check progress against evidence, not promises.</p>
       <a class="lp-link" href="{% url 'how_it_works' %}">How evidence works</a>
     </article>
     <article class="lp-card lp-aud">
-      <span class="lp-icon"><i data-lucide="eye" class="icon" aria-hidden="true"></i></span>
+      <span class="lp-icon"><i class="fa-solid fa-eye fa-fw icon" aria-hidden="true"></i></span>
       <h3>The public</h3>
       <p>Browse the projects organisations publish.</p>
       <a class="lp-link" href="{% url 'projects' %}">Explore projects</a>
@@ -108,15 +108,15 @@
     </div>
     <ul class="lp-checks">
       <li>
-        <span class="lp-icon"><i data-lucide="clock-3" class="icon" aria-hidden="true"></i></span>
+        <span class="lp-icon"><i class="fa-solid fa-clock fa-fw icon" aria-hidden="true"></i></span>
         <div><b>Dated and located</b><small>Every entry has a time and a position.</small></div>
       </li>
       <li>
-        <span class="lp-icon"><i data-lucide="shield-check" class="icon" aria-hidden="true"></i></span>
+        <span class="lp-icon"><i class="fa-solid fa-shield-halved fa-fw icon" aria-hidden="true"></i></span>
         <div><b>Never quietly changed</b><small>Corrections are new entries, with a reason.</small></div>
       </li>
       <li>
-        <span class="lp-icon"><i data-lucide="image" class="icon" aria-hidden="true"></i></span>
+        <span class="lp-icon"><i class="fa-solid fa-image fa-fw icon" aria-hidden="true"></i></span>
         <div><b>Photos stay private</b><small>Location data is stripped from shown copies.</small></div>
       </li>
     </ul>

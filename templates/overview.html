@@ -109,7 +109,7 @@
           </div>
         {% empty %}
           <div class="empty-state">
-            <i data-lucide="map-pin" class="icon" aria-hidden="true"></i>
+            <i class="fa-solid fa-location-dot fa-fw icon" aria-hidden="true"></i>
             <h3>No sites yet</h3>
             <p class="muted">A site is a place where work happens. Each one gets a status backed by dated, located evidence.</p>
             {% if can_add_site %}
@@ -126,9 +126,9 @@
       <div class="card sidebar-card">
         <div class="sidebar-label">Quick actions</div>
         <div class="quick-actions">
-          <a class="action-pill" href="{% url 'sites' %}"><span class="action-label"><i data-lucide="map" class="icon icon-sm" aria-hidden="true"></i><span>Open site list</span></span></a>
-          {% if nav_can_review %}<a class="action-pill" href="{% url 'review' %}"><span class="action-label"><i data-lucide="check-check" class="icon icon-sm" aria-hidden="true"></i><span>Review queue</span></span></a>{% endif %}
-          {% if nav_can_team %}<a class="action-pill" href="{% url 'team' %}"><span class="action-label"><i data-lucide="users" class="icon icon-sm" aria-hidden="true"></i><span>Manage team</span></span></a>{% endif %}
+          <a class="action-pill" href="{% url 'sites' %}"><span class="action-label"><i class="fa-solid fa-map fa-fw icon icon-sm" aria-hidden="true"></i><span>Open site list</span></span></a>
+          {% if nav_can_review %}<a class="action-pill" href="{% url 'review' %}"><span class="action-label"><i class="fa-solid fa-check-double fa-fw icon icon-sm" aria-hidden="true"></i><span>Review queue</span></span></a>{% endif %}
+          {% if nav_can_team %}<a class="action-pill" href="{% url 'team' %}"><span class="action-label"><i class="fa-solid fa-users fa-fw icon icon-sm" aria-hidden="true"></i><span>Manage team</span></span></a>{% endif %}
         </div>
       </div>
     </aside>

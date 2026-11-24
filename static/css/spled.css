@@ -1497,24 +1497,22 @@ button.chip[aria-pressed="true"] { background: var(--ink); color: #fff; border-c
 }
 .field-error[data-client-error] { margin-top: 2px; }
 
-/* Step 59: a spinning ring replaces the button label while a valid form is being sent */
+/* Step 59 (reworked in Step 65): while a valid form is being sent, the button says what is
+   happening in words, with a spinning ring after the words */
 @keyframes spled-spin { to { transform: rotate(360deg); } }
 @keyframes spled-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 .btn.is-loading, button.is-loading {
-  position: relative; color: transparent !important; text-shadow: none; transform: none; box-shadow: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  transform: none; box-shadow: none; cursor: progress;
 }
 .btn.is-loading[aria-disabled="true"] { opacity: 1; }
-.is-loading > :not([data-loading-note]) { visibility: hidden; }
 .is-loading::after {
-  content: ""; position: absolute; top: 50%; left: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
-  border: 2.5px solid var(--spinner-color, #888); border-right-color: transparent; border-radius: 50%;
+  content: ""; flex: none; width: 16px; height: 16px;
+  border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%;
   animation: spled-spin 0.7s linear infinite;
 }
-.is-loading > [data-loading-note] {
-  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
-}
 @media (prefers-reduced-motion: reduce) {
-  .is-loading::after { animation: spled-pulse 1.4s ease-in-out infinite; border-right-color: var(--spinner-color, #888); }
+  .is-loading::after { animation: spled-pulse 1.4s ease-in-out infinite; border-right-color: currentColor; }
 }
 
 /* Step 60: smaller type. Body 14px -> 13px, headings about 18% smaller.
@@ -1705,4 +1703,54 @@ b, strong { font-weight: 600; }
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 28px; align-items: start;
   }
   .app-main section[aria-label="Two-step verification"].stack > :not(details) { grid-column: 1 / -1; }
+}
+
+/* Step 65: the overview keeps Quick actions and Needs attention in a right-hand column that
+   stays in view, and so does the site page's side column. Narrow screens keep the old order. */
+@media (max-width: 1279px) {
+  .overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .overview-main, .overview-aside { display: contents; }
+  .overview-main > .overview-hero { order: 0; }
+  .overview-main > .notice { order: 1; }
+  .overview-main > .stats { order: 2; }
+  .overview-aside > .attention-list { order: 3; }
+  .overview-main > .map-card { order: 4; }
+  .overview-main > .sitelist { order: 5; }
+  .overview-aside > .sidebar-card { order: 6; }
+}
+
+@media (min-width: 1280px) {
+  .app-main .overview-grid { grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 380px); }
+}
+
+@media (min-width: 1280px) and (min-height: 700px) {
+  .overview-aside {
+    position: sticky; top: 24px; align-self: start; max-height: calc(100dvh - 48px); overflow-y: auto;
+    overscroll-behavior: contain; scrollbar-width: thin; padding: 2px 6px 8px 2px; margin: -2px -6px -8px -2px;
+  }
+}
+
+@media (min-width: 1024px) and (min-height: 700px) {
+  .app-main .detailgrid .side {
+    position: sticky; top: 24px; align-self: start; max-height: calc(100dvh - 48px); overflow-y: auto;
+    overscroll-behavior: contain; scrollbar-width: thin; padding: 2px 6px 8px 2px; margin: -2px -6px -8px -2px;
+  }
+}
+
+/* Step 66: the right-hand columns are pinned whenever the sidebar is showing (1024px and up),
+   at any window height. If a column is taller than the window it scrolls inside itself,
+   so none of it is ever out of reach. */
+@media (min-width: 1024px) {
+  .app-main .overview-grid { grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, 380px); align-items: start; }
+  .app-main .overview-main, .app-main .overview-aside { display: flex; flex-direction: column; gap: 20px; }
+  .app-main .overview-main > *, .app-main .overview-aside > * { order: 0; }
+  .app-main .quick-actions { flex-direction: column; flex-wrap: nowrap; }
+  .app-main .quick-actions .action-pill { flex: none; }
+
+  .app-main .overview-aside,
+  .app-main .detailgrid .side {
+    position: sticky; top: 16px; align-self: start;
+    max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain;
+    scrollbar-width: thin; padding: 2px 6px 8px 2px; margin: -2px -6px -8px -2px;
+  }
 }

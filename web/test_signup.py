@@ -351,3 +351,74 @@ class TypeScaleTests(TestCase):
     def test_inputs_are_left_alone_so_phones_do_not_zoom_in(self):
         self.assertNotIn(".field input", self.block())
         self.assertNotIn("input {", self.block())
+
+
+
+class SpinnerTextTests(TestCase):
+    def js(self):
+        return VALIDATE_JS.read_text(encoding="utf-8")
+
+    def table(self):
+        text = self.js()
+        start = text.index("var LOADING_TEXT = {")
+        return dict(re.findall(r'"([^"]+)":\s*"([^"]+)"', text[start:text.index("};", start)]))
+
+    def labels(self, html):
+        found = []
+        for form in re.findall(r"<form[^>]*novalidate[^>]*>(.*?)</form>", html, re.S):
+            for label in re.findall(r'<button[^>]*type="submit"[^>]*>(.*?)</button>', form, re.S):
+                found.append(" ".join(re.sub(r"<[^>]+>", "", label).split()))
+        return found
+
+    def test_common_buttons_say_what_is_happening(self):
+        table = self.table()
+        self.assertTrue(table["Sign in"].startswith("Signing in"))
+        self.assertTrue(table["Create account"].startswith("Creating account"))
+
+    def test_every_button_on_the_main_forms_has_its_own_wording(self):
+        from accounts.models import User
+        from organisations.models import Membership, Organisation
+
+        table = self.table()
+        pages = {"signin": ["Sign in"], "signup": ["Create account"]}
+        for name, expected in pages.items():
+            with self.subTest(page=name):
+                found = self.labels(self.client.get(reverse(name)).content.decode())
+                self.assertEqual(found, expected)
+                self.assertTrue(all(label in table for label in found))
+
+        user = User.objects.create_user("spin@example.com", "pw12345678", full_name="Spin")
+        org = Organisation.objects.create(name="Spin Org", kind="government", verification="verified")
+        Membership.objects.create(user=user, organisation=org, role="admin")
+        self.client.login(username="spin@example.com", password="pw12345678")
+        app_pages = {
+            "profile": ["Save details", "Change password"],
+            "team": ["Send invitation"],
+            "org_settings": ["Save settings"],
+            "site_new": ["Save site"],
+        }
+        for name, expected in app_pages.items():
+            with self.subTest(page=name):
+                found = self.labels(self.client.get(reverse(name)).content.decode())
+                self.assertEqual(found, expected)
+                self.assertTrue(all(label in table for label in found))
+
+    def test_downloads_never_show_a_spinner(self):
+        text = self.js()
+        self.assertIn("function looksLikeDownload", text)
+        self.assertIn("looksLikeDownload(button)", text)
+        self.assertIn("download", text.split("function looksLikeDownload")[1][:300].lower())
+
+    def test_the_ring_follows_the_words_and_takes_the_text_colour(self):
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+        block = css[css.index("reworked in Step 65"):]
+        block = block[:block.index("\n/* ")]
+        self.assertIn(".is-loading::after", block)
+        self.assertIn("border: 2px solid currentColor", block)
+        self.assertNotIn("color: transparent", block)
+
+    def test_the_button_keeps_its_width_and_comes_back_and_unknown_labels_get_a_rule(self):
+        text = self.js()
+        for needle in ("minWidth", "__spledHTML", "function loadingTextFor", "IRREGULAR", "data-loading-text"):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, text)

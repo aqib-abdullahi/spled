@@ -174,7 +174,52 @@
     field.focus({ preventScroll: true });
   }
 
-  // ---- The loading state: a ring replaces the label once a form passes validation ----
+  // ---- The loading state: the button says what is happening, with a ring after the words ----
+
+  // Exact labels first, so the wording is chosen on purpose. Anything else falls back to a rule.
+  var LOADING_TEXT = {
+    "Sign in": "Signing in\u2026",
+    "Create account": "Creating account\u2026",
+    "Save details": "Saving details\u2026",
+    "Change password": "Changing password\u2026",
+    "Save settings": "Saving settings\u2026",
+    "Save site": "Saving site\u2026",
+    "Save entry": "Saving entry\u2026",
+    "Save changes": "Saving changes\u2026",
+    "Send invitation": "Sending invitation\u2026",
+    "Create link": "Creating link\u2026",
+    "Add milestone": "Adding milestone\u2026",
+    "Get new codes": "Getting new codes\u2026",
+    "Turn off": "Turning off\u2026"
+  };
+  var IRREGULAR = { get: "getting", log: "logging", submit: "submitting", set: "setting", run: "running" };
+
+  function ing(word) {
+    var lower = word.toLowerCase();
+    if (IRREGULAR[lower]) { return IRREGULAR[lower]; }
+    if (/[^e]e$/.test(lower)) { return lower.slice(0, -1) + "ing"; }
+    return lower + "ing";
+  }
+
+  function loadingTextFor(button) {
+    var explicit = button.getAttribute("data-loading-text") ||
+      (button.form && button.form.getAttribute("data-loading-text"));
+    if (explicit) { return explicit; }
+    var label = (button.textContent || "").replace(/\s+/g, " ").trim();
+    if (!label) { return "Please wait\u2026"; }
+    if (LOADING_TEXT[label]) { return LOADING_TEXT[label]; }
+    var words = label.split(" ");
+    var first = words.shift();
+    if (!/^[A-Za-z]+$/.test(first)) { return "Please wait\u2026"; }
+    var text = first.charAt(0).toUpperCase() + ing(first).slice(1);
+    return (words.length ? text + " " + words.join(" ") : text) + "\u2026";
+  }
+
+  // A download keeps the page open, so a spinner would spin until the timeout.
+  function looksLikeDownload(button) {
+    var label = ((button && button.textContent) || "").trim();
+    return /^(download|export|print|copy)\b/i.test(label);
+  }
 
   function unlock(form) {
     clearTimeout(form.__spledTimer);
@@ -184,9 +229,9 @@
     if (button) {
       button.classList.remove("is-loading");
       button.removeAttribute("aria-disabled");
-      button.style.removeProperty("--spinner-color");
-      var note = button.querySelector("[data-loading-note]");
-      if (note) { note.remove(); }
+      if (button.__spledHTML !== undefined) { button.innerHTML = button.__spledHTML; }
+      button.style.minWidth = button.__spledMinWidth || "";
+      button.__spledHTML = undefined;
     }
     form.__spledButton = null;
   }
@@ -195,17 +240,22 @@
     form.setAttribute("data-locked", "1");
     form.setAttribute("aria-busy", "true");
     form.__spledButton = null;
-    // Only a real <button> can show the ring. It is never set to "disabled": a disabled
-    // submit button drops its name and value from what the browser sends.
+    // Only a real <button> can show the words and the ring. It is never set to "disabled":
+    // a disabled submit button drops its name and value from what the browser sends.
     if (button && button.tagName === "BUTTON") {
-      button.style.setProperty("--spinner-color", getComputedStyle(button).color);
-      button.classList.add("is-loading");
-      button.setAttribute("aria-disabled", "true");
+      var message = loadingTextFor(button);
+      button.__spledHTML = button.innerHTML;
+      button.__spledMinWidth = button.style.minWidth;
+      button.style.minWidth = button.offsetWidth + "px"; // the button does not shrink while it waits
       var note = document.createElement("span");
       note.setAttribute("data-loading-note", "");
       note.setAttribute("role", "status");
-      note.textContent = "Please wait";
+      button.textContent = "";
       button.appendChild(note);
+      button.classList.add("is-loading");
+      button.setAttribute("aria-disabled", "true");
+      // Filled in a moment later, so screen readers announce the change.
+      setTimeout(function () { note.textContent = message; }, 40);
       form.__spledButton = button;
     }
     clearTimeout(form.__spledTimer);
@@ -254,6 +304,7 @@
       var target = (e.submitter && e.submitter.getAttribute("formtarget")) || form.getAttribute("target");
       if (target && target !== "_self") { return; }
       var button = e.submitter || form.querySelector('button[type="submit"], button:not([type])');
+      if (looksLikeDownload(button)) { return; }
       // Another handler (the map's boundary check) may still cancel this submit.
       setTimeout(function () { if (!e.defaultPrevented) { lock(form, button); } }, 0);
     });

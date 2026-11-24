@@ -170,3 +170,89 @@ class PageLayoutTests(TestCase):
         r = self.client.get(reverse("evidence_new", args=[self.site.pk]))
         self.assertContains(r, 'setAttribute("data-max-files", "%d")' % MAX_PHOTOS)
         self.assertContains(r, 'setAttribute("data-max-bytes", "%d")' % MAX_BYTES)
+
+
+
+class OverviewColumnTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("col@example.com", "pw12345678", full_name="Col")
+        self.org = Organisation.objects.create(name="Col Org", kind="government", verification="verified")
+        Membership.objects.create(user=self.user, organisation=self.org, role="admin")
+        self.site = Site.objects.create(
+            organisation=self.org, name="Stuck Road", kind="road", status="stalled",
+            location=Point(7.4, 9.07, srid=4326),
+        )
+        self.client.login(username="col@example.com", password="pw12345678")
+
+    def parts(self):
+        html = self.client.get(reverse("overview")).content.decode()
+        start = html.index('<aside class="overview-aside">')
+        return html[:start], html[start:html.index("</aside>", start)]
+
+    def css(self):
+        text = SPLED_CSS.read_text(encoding="utf-8")
+        return text[text.index("Step 65"):]
+
+    def test_needs_attention_lives_in_the_right_hand_column(self):
+        before, aside = self.parts()
+        self.assertIn('aria-label="Needs attention"', aside)
+        self.assertNotIn('aria-label="Needs attention"', before)
+        self.assertIn("Stuck Road", aside)
+
+    def test_quick_actions_are_beside_it_and_the_rest_stays_in_the_main_column(self):
+        before, aside = self.parts()
+        self.assertIn("Quick actions", aside)
+        self.assertLess(aside.index("Quick actions"), aside.index('aria-label="Needs attention"'))
+        for needle in ("overview-hero", 'aria-label="Status summary"', 'aria-label="Sites"'):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, before)
+
+    def test_side_columns_stay_in_view_on_tall_wide_screens(self):
+        css = self.css()
+        self.assertIn("Step 66", css)
+        self.assertIn(".app-main .detailgrid .side", css)
+        self.assertIn("position: sticky", css)
+        self.assertIn("max-height: calc(100dvh - 48px)", css)
+
+    def test_narrow_screens_keep_the_old_order(self):
+        css = self.css()
+        self.assertIn("display: contents", css)
+        order = {name: int(n) for name, n in re.findall(r"> \.([a-z-]+) \{ order: (\d+); \}", css)}
+        self.assertLess(order["stats"], order["attention-list"])
+        self.assertLess(order["attention-list"], order["map-card"])
+        self.assertLess(order["map-card"], order["sitelist"])
+        self.assertLess(order["sitelist"], order["sidebar-card"])
+
+    def test_the_site_page_has_the_side_column_the_sticky_rule_targets(self):
+        r = self.client.get(reverse("site_detail", args=[self.site.pk]))
+        self.assertContains(r, 'class="detailgrid"')
+        self.assertContains(r, 'class="side"')
+
+
+
+class PinnedColumnTests(TestCase):
+    def block(self):
+        text = SPLED_CSS.read_text(encoding="utf-8")
+        return text[text.index("Step 66"):]
+
+    def test_columns_are_pinned_from_1024px_with_no_height_condition(self):
+        block = self.block()
+        self.assertIn("@media (min-width: 1024px)", block)
+        self.assertIn("position: sticky", block)
+        self.assertNotIn("min-height", block)
+
+    def test_a_pinned_column_taller_than_the_window_scrolls_inside_itself(self):
+        block = self.block()
+        self.assertIn("max-height: calc(100dvh - 32px)", block)
+        self.assertIn("overflow-y: auto", block)
+        self.assertIn("overscroll-behavior: contain", block)
+
+    def test_both_the_overview_aside_and_the_site_side_column_are_pinned(self):
+        block = self.block()
+        self.assertIn(".app-main .overview-aside", block)
+        self.assertIn(".app-main .detailgrid .side", block)
+
+    def test_the_overview_is_two_columns_again_and_keeps_the_page_order_in_the_aside(self):
+        block = self.block()
+        self.assertIn(".app-main .overview-grid { grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, 380px)", block)
+        self.assertIn(".app-main .overview-aside > * { order: 0; }", block)

@@ -1589,7 +1589,7 @@ b, strong { font-weight: 600; }
     background: linear-gradient(180deg, #0c1c21, #10272d); border-right: 1px solid rgba(255,255,255,0.06);
   }
   .sidebar .brand { color: #fff; padding: 4px 10px 16px; }
-  .sidebar :focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .sidebar :focus-visible { outline: 2px solid var(--mint-tint); outline-offset: 2px; }
   .sb-nav { display: flex; flex-direction: column; gap: 2px; }
   .sb-label {
     margin: 16px 10px 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
@@ -1597,14 +1597,14 @@ b, strong { font-weight: 600; }
   }
   .sb-link {
     display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
-    color: rgba(255,255,255,0.78); font-weight: 500; font-size: 14px; line-height: 1.2;
+    color: rgba(255,255,255,0.78); font-weight: 300; font-size: 14px; line-height: 1.4;
     transition: background 0.15s ease, color 0.15s ease;
   }
   .sb-link:hover { background: rgba(255,255,255,0.06); color: #fff; }
   .sb-link[aria-current="page"] {
-    background: rgba(45, 212, 165, 0.12); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 var(--mint);
+    background: rgba(45, 212, 165, 0.12); color: #fff; font-weight: 400; box-shadow: inset 1.5px 0 0 var(--mint-tint);
   }
-  .sidebar .fa-solid.icon { font-size: 17px; width: 1.3em; text-align: center; opacity: 0.95; }
+  .sidebar .fa-solid.icon { font-size: 20px; width: 1em; text-align: center; opacity: 0.95; }
   .sb-badge {
     margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
@@ -1655,7 +1655,54 @@ b, strong { font-weight: 600; }
 @media (min-width: 1280px) {
   .page-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; }
   .page-cols > div, .page-cols > .flash, .page-cols > .notice, .page-cols > .alert { grid-column: 1 / -1; }
-  .page-cols > section[aria-label="Members"] { grid-column: 1; grid-row: 2 / span 3; }
-  .page-cols > section[aria-label="Invite someone"] { grid-column: 2; grid-row: 2; }
-  .page-cols > section[aria-label="Open invitations"] { grid-column: 2; grid-row: 3; }
+  .page-cols { grid-auto-flow: dense; }
+  .page-cols > section[aria-label="Members"] { grid-column: 1; grid-row: span 2; }
+  .page-cols > section[aria-label="Invite someone"] { grid-column: 2; }
+  .page-cols > section[aria-label="Open invitations"] { grid-column: 2; }
+}
+
+/* Step 64: layouts for the dashboard pages. Cards are placed by column and flow into
+   rows automatically, so a flash message above them can never push them out of place. */
+.evidence-layout, .site-form-grid { display: flex; flex-direction: column; gap: 24px; }
+.site-form > .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.site-context { display: flex; flex-direction: column; gap: 10px; }
+.site-context h2 { font-size: 17px; }
+.site-context p { margin: 0; }
+
+@media (min-width: 1024px) {
+  .page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr)); gap: 24px; align-items: start; }
+  .page-grid > :not(.rcard) { grid-column: 1 / -1; }
+}
+
+@media (min-width: 1280px) {
+  .evidence-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+  .site-context { position: sticky; top: 24px; }
+
+  .site-form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 28px; align-items: start; }
+  .site-map { position: sticky; top: 24px; }
+  .site-map .mapbox { height: clamp(420px, 62vh, 680px); }
+
+  .page-org { display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 24px; align-items: start; grid-auto-flow: dense; }
+  .page-org > div, .page-org > .flash { grid-column: 1 / -1; }
+  .page-org > section[aria-label="Verification"] { grid-column: 1; }
+  .page-org > form { grid-column: 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 28px; align-items: start; }
+  .page-org > form > h2, .page-org > form > .alert, .page-org > form > .actions { grid-column: 1 / -1; }
+
+  .page-share { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; align-items: start; grid-auto-flow: dense; }
+  .page-share > nav, .page-share > div, .page-share > .flash, .page-share > section[aria-label="New link"] { grid-column: 1 / -1; }
+  .page-share > section[aria-label="Create a link"] { grid-column: 1; }
+  .page-share > section[aria-label="Links for this site"] { grid-column: 2; }
+
+  .page-ms > nav, .page-ms > div, .page-ms > .flash { grid-column: 1 / -1; }
+  .page-ms:has(> section[aria-label="Add a milestone"]) {
+    display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(300px, 1fr); gap: 24px; align-items: start; grid-auto-flow: dense;
+  }
+  .page-ms:has(> section[aria-label="Add a milestone"]) > section[aria-label="Milestones"] { grid-column: 1; grid-row: span 2; }
+  .page-ms:has(> section[aria-label="Add a milestone"]) > section[aria-label="Progress setting"],
+  .page-ms:has(> section[aria-label="Add a milestone"]) > section[aria-label="Add a milestone"] { grid-column: 2; }
+
+  .app-main section[aria-label="Two-step verification"].stack {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 28px; align-items: start;
+  }
+  .app-main section[aria-label="Two-step verification"].stack > :not(details) { grid-column: 1 / -1; }
 }

@@ -1,4 +1,5 @@
 {% extends "app_base.html" %}
+{% block page_class %}page-share{% endblock %}
 {% block title %}Share {{ site.name }}{% endblock %}
 {% block content %}
 <nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> / <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> / Share</nav>

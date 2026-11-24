@@ -4,21 +4,28 @@
 <nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> > {{ title }}</nav>
 <h1>{{ title }}</h1>
 
-<form method="post" class="card formgrid" novalidate>
+<form method="post" class="card site-form" novalidate>
   {% csrf_token %}
-  {% for hidden in form.hidden_fields %}{{ hidden }}{% for error in hidden.errors %}<div class="alert wide" role="alert">{{ error }}</div>{% endfor %}{% endfor %}
-  {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
-  {% for field in form.visible_fields %}
-    <div class="field{% if field.name == 'name' or field.name == 'description' %} wide{% endif %}">
-      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
-      {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-    </div>
-  {% endfor %}
-  {% include "_pin_picker.html" %}
+  {% for hidden in form.hidden_fields %}{{ hidden }}{% for error in hidden.errors %}<div class="alert" role="alert">{{ error }}</div>{% endfor %}{% endfor %}
+  {% if form.non_field_errors %}<div class="alert" role="alert">{{ form.non_field_errors }}</div>{% endif %}
 
-  <div class="actions wide">
+  <div class="site-form-grid">
+    <div class="formgrid site-fields">
+      {% for field in form.visible_fields %}
+        <div class="field{% if field.name == 'name' or field.name == 'description' %} wide{% endif %}">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+          {% for error in field.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+    <div class="site-map">
+      {% include "_pin_picker.html" %}
+    </div>
+  </div>
+
+  <div class="actions">
     <button class="btn btn-dark" type="submit">Save site</button>
     <a class="btn" href="{% url 'sites' %}">Cancel</a>
   </div>

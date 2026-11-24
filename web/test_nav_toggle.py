@@ -107,3 +107,66 @@ class SidebarTests(TestCase):
         for name in ("team", "reports", "profile"):
             with self.subTest(page=name):
                 self.assertContains(self.client.get(reverse(name)), 'class="page page-cols"')
+
+
+from django.contrib.gis.geos import Point  # noqa: E402
+
+from registry.models import Site  # noqa: E402
+from registry.photos import MAX_BYTES, MAX_PHOTOS  # noqa: E402
+
+
+class PageLayoutTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("lay@example.com", "pw12345678", full_name="Lay")
+        self.org = Organisation.objects.create(name="Lay Org", kind="government", verification="verified")
+        Membership.objects.create(user=self.user, organisation=self.org, role="admin")
+        self.site = Site.objects.create(
+            organisation=self.org, name="Lay Road", kind="road", location=Point(7.4, 9.07, srid=4326)
+        )
+        self.client.login(username="lay@example.com", password="pw12345678")
+
+    def css(self):
+        text = SPLED_CSS.read_text(encoding="utf-8")
+        return text[text.index("Step 64"):]
+
+    def test_pages_ask_for_their_layouts(self):
+        expected = [
+            ("org_settings", (), "page-org"),
+            ("review", (), "page-grid"),
+            ("share_links", (self.site.pk,), "page-share"),
+            ("milestones", (self.site.pk,), "page-ms"),
+        ]
+        for name, args, cls in expected:
+            with self.subTest(page=name):
+                self.assertContains(self.client.get(reverse(name, args=args)), 'class="page %s"' % cls)
+
+    def test_security_panels_sit_side_by_side_in_css(self):
+        self.assertIn('section[aria-label="Two-step verification"].stack', self.css())
+
+    def test_team_layout_no_longer_depends_on_row_numbers(self):
+        text = SPLED_CSS.read_text(encoding="utf-8")
+        self.assertNotIn("grid-row: 2 / span 3", text)
+        self.assertIn(".page-cols { grid-auto-flow: dense; }", text)
+
+    def test_milestones_use_two_columns_only_when_there_is_a_second_column(self):
+        self.assertIn(':has(> section[aria-label="Add a milestone"])', self.css())
+
+    def test_site_form_puts_the_map_beside_the_fields(self):
+        html = self.client.get(reverse("site_new")).content.decode()
+        self.assertEqual(html.count('class="site-form-grid"'), 1)
+        self.assertEqual(html.count('id="pin-map"'), 1)
+        self.assertLess(html.index("site-fields"), html.index('id="pin-map"'))
+        self.assertIn("Save site", html)
+
+    def test_evidence_form_shows_the_site_beside_the_form(self):
+        r = self.client.get(reverse("evidence_new", args=[self.site.pk]))
+        self.assertContains(r, 'class="evidence-layout"')
+        self.assertContains(r, 'aria-label="About this site"')
+        self.assertContains(r, "Lay Road")
+        self.assertContains(r, "Save entry")
+        self.assertContains(r, "Use my current location")
+
+    def test_photo_limits_given_to_the_validation_script_match_the_server(self):
+        r = self.client.get(reverse("evidence_new", args=[self.site.pk]))
+        self.assertContains(r, 'setAttribute("data-max-files", "%d")' % MAX_PHOTOS)
+        self.assertContains(r, 'setAttribute("data-max-bytes", "%d")' % MAX_BYTES)

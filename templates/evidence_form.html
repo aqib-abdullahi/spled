@@ -4,50 +4,74 @@
 <nav class="muted" aria-label="Breadcrumb"><a href="{% url 'sites' %}">Sites</a> > <a href="{% url 'site_detail' site.pk %}">{{ site.name }}</a> > Log evidence</nav>
 <h1>Log evidence</h1>
 
-<form method="post" class="card formgrid" enctype="multipart/form-data" novalidate>
-  {% csrf_token %}
-  {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+<div class="evidence-layout">
+  <form method="post" class="card formgrid" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
 
-  <div class="field"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label>{{ form.kind }}</div>
-  {% if allow_status %}
-  <div class="field"><label for="{{ form.new_status.id_for_label }}">{{ form.new_status.label }}</label>{{ form.new_status }}
-    {% for error in form.new_status.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-  </div>
-  {% endif %}
+    <div class="field"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label>{{ form.kind }}</div>
+    {% if allow_status %}
+    <div class="field"><label for="{{ form.new_status.id_for_label }}">{{ form.new_status.label }}</label>{{ form.new_status }}
+      {% for error in form.new_status.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    {% endif %}
 
-  <div class="field wide"><label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>{{ form.body }}
-    {% for error in form.body.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-  </div>
+    <div class="field wide"><label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>{{ form.body }}
+      {% for error in form.body.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
 
-  <div class="field wide"><label for="{{ form.tags.id_for_label }}">Tags</label>{{ form.tags }}
-    <small class="muted">{{ form.tags.help_text }}</small>
-    {% for error in form.tags.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-  </div>
+    <div class="field wide"><label for="{{ form.tags.id_for_label }}">Tags</label>{{ form.tags }}
+      <small class="muted">{{ form.tags.help_text }}</small>
+      {% for error in form.tags.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
 
-  <div class="field wide"><label for="{{ form.photos.id_for_label }}">Photos</label>{{ form.photos }}
-    <small class="muted">Up to 5 photos, 10 MB each (JPEG, PNG or WebP). Location data stored inside a photo is removed from the copy people see.</small>
-    {% for error in form.photos.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-  </div>
+    <div class="field wide"><label for="{{ form.photos.id_for_label }}">Photos</label>{{ form.photos }}
+      <small class="muted">Up to 5 photos, 10 MB each (JPEG, PNG or WebP). Location data stored inside a photo is removed from the copy people see.</small>
+      {% for error in form.photos.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
 
-  <div class="field"><label for="{{ form.latitude.id_for_label }}">Latitude</label>{{ form.latitude }}
-    {% for error in form.latitude.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-  </div>
-  <div class="field"><label for="{{ form.longitude.id_for_label }}">Longitude</label>{{ form.longitude }}
-    {% for error in form.longitude.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-  </div>
+    <div class="field"><label for="{{ form.latitude.id_for_label }}">Latitude</label>{{ form.latitude }}
+      {% for error in form.latitude.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
+    <div class="field"><label for="{{ form.longitude.id_for_label }}">Longitude</label>{{ form.longitude }}
+      {% for error in form.longitude.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
+    </div>
 
-  <div class="wide">
-    <button type="button" class="btn btn-small" id="locate">Use my current location</button>
-    <small id="locate-status" class="muted" role="status"></small>
-  </div>
+    <div class="wide">
+      <button type="button" class="btn btn-small" id="locate">Use my current location</button>
+      <small id="locate-status" class="muted" role="status"></small>
+    </div>
 
-  <div class="actions wide">
-    <button class="btn btn-dark" type="submit">Save entry</button>
-    <a class="btn" href="{% url 'site_detail' site.pk %}">Cancel</a>
-  </div>
-</form>
+    <div class="actions wide">
+      <button class="btn btn-dark" type="submit">Save entry</button>
+      <a class="btn" href="{% url 'site_detail' site.pk %}">Cancel</a>
+    </div>
+  </form>
+
+  <aside class="card site-context" aria-label="About this site">
+    <h2>{{ site.name }}</h2>
+    <p class="meta">
+      <span class="badge st-{{ site.status }}">{{ site.get_status_display }}</span>
+      <span class="muted">{{ site.get_kind_display }}{% if site.owner_name %} · {{ site.owner_name }}{% endif %}</span>
+    </p>
+    <div class="progress">
+      <div class="bar"><i class="st-{{ site.status }}" style="width: {{ site.progress }}%"></i></div>
+      <span class="mono">{{ site.progress }}%</span>
+    </div>
+    <div class="muted">Target date · <span class="mono">{{ site.target_date|date:"d M Y"|default:"not set" }}</span></div>
+    <div class="muted">Pin · <span class="mono">{{ site.location.y|floatformat:4 }}, {{ site.location.x|floatformat:4 }}</span></div>
+    <p class="muted">Entries can’t be edited or deleted. A mistake is corrected with a new entry that says what changed and why.</p>
+  </aside>
+</div>
 
 <script>
+  // The validation script reads these. They match the limits the server enforces.
+  var photosInput = document.getElementById("id_photos");
+  if (photosInput) {
+    photosInput.setAttribute("data-max-files", "5");
+    photosInput.setAttribute("data-max-bytes", "10485760");
+  }
+
   document.getElementById("locate").addEventListener("click", function () {
     var out = document.getElementById("locate-status");
     if (!navigator.geolocation) { out.textContent = " This browser can’t share its location."; return; }

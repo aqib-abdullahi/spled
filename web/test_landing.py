@@ -54,3 +54,35 @@ class LandingPageTests(TestCase):
         for text in ("Trusted by", "customers", "testimonial", "per month", "Pricing"):
             with self.subTest(text=text):
                 self.assertNotContains(r, text)
+
+
+
+from pathlib import Path  # noqa: E402
+
+from django.conf import settings  # noqa: E402
+
+
+class FaqBehaviourTests(TestCase):
+    def html(self):
+        return self.client.get(reverse("home")).content.decode()
+
+    def test_opening_one_answer_closes_the_others(self):
+        html = self.html()
+        self.assertIn("closeItem(other)", html)
+        self.assertIn("other !== d", html)
+
+    def test_one_at_a_time_does_not_depend_on_the_motion_setting(self):
+        html = self.html()
+        self.assertIn("var animate = !reduce", html)
+        self.assertNotIn("matches) { return; }", html)
+
+    def test_the_faq_is_centred_under_its_own_heading(self):
+        html = self.html()
+        self.assertEqual(html.count('class="lp-head lp-head-center"'), 1)
+        self.assertNotIn("lp-faq-wrap", html)
+
+    def test_open_answers_and_the_centred_layout_are_styled(self):
+        css = (Path(settings.BASE_DIR) / "static" / "css" / "spled.css").read_text(encoding="utf-8")
+        block = css[css.index("Step 67"):]
+        self.assertIn(".lp-head-center", block)
+        self.assertIn(".lp-faq details[open]", block)

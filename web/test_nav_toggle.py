@@ -54,13 +54,13 @@ class SidebarTests(TestCase):
     def test_an_admin_sees_every_link(self):
         found = self.links(self.sidebar("admin"))
         for name in ("overview", "sites", "staff_map", "review", "reports", "team",
-                     "audit_log", "org_settings", "settings_hub", "profile"):
+                     "audit_log", "org_settings", "settings_hub"):
             with self.subTest(link=name):
                 self.assertIn(reverse(name), found)
 
     def test_a_viewer_sees_only_what_a_viewer_may_use(self):
         found = self.links(self.sidebar("viewer"))
-        for name in ("overview", "sites", "staff_map", "settings_hub", "profile"):
+        for name in ("overview", "sites", "staff_map", "settings_hub"):
             self.assertIn(reverse(name), found)
         for name in ("review", "reports", "team", "audit_log", "org_settings"):
             with self.subTest(hidden=name):
@@ -80,11 +80,13 @@ class SidebarTests(TestCase):
         self.assertNotIn('href="%s" aria-current="page"' % reverse("overview"), html)
 
     def test_it_shows_who_is_signed_in_and_can_sign_out(self):
-        html = self.sidebar("viewer")
-        self.assertIn("Side Person", html)
-        self.assertIn("side@example.com", html)
-        self.assertIn('action="%s"' % reverse("signout"), html)
-        self.assertIn("csrfmiddlewaretoken", html)
+        header = self.client.get(reverse("overview")).content.decode()
+        header = header.split('<header class="apphead"', 1)[1].split("</header>", 1)[0]
+        self.assertIn("Side Person", header)
+        self.assertIn("side@example.com", header)
+        self.assertIn('action="%s"' % reverse("signout"), header)
+        self.assertIn("csrfmiddlewaretoken", header)
+        self.assertNotIn('action="%s"' % reverse("signout"), self.sidebar("viewer"))
 
     def test_public_and_sign_in_pages_have_no_sidebar(self):
         self.client.logout()
@@ -256,3 +258,50 @@ class PinnedColumnTests(TestCase):
         block = self.block()
         self.assertIn(".app-main .overview-grid { grid-template-columns: minmax(0, 1fr) clamp(260px, 24vw, 380px)", block)
         self.assertIn(".app-main .overview-aside > * { order: 0; }", block)
+
+
+
+class HeaderTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("head@example.com", "pw12345678", full_name="Head Person")
+        self.org = Organisation.objects.create(name="Head Org", kind="government", verification="verified")
+        Membership.objects.create(user=self.user, organisation=self.org, role="viewer")
+        self.client.login(username="head@example.com", password="pw12345678")
+
+    def header(self, page="overview"):
+        html = self.client.get(reverse(page)).content.decode()
+        return html.split('<header class="apphead"', 1)[1].split("</header>", 1)[0]
+
+    def test_dashboard_pages_have_a_pinned_header_with_the_organisation_name(self):
+        for page in ("overview", "sites", "settings_hub", "profile"):
+            with self.subTest(page=page):
+                self.assertIn("Head Org", self.header(page))
+
+    def test_the_account_menu_has_profile_security_and_sign_out(self):
+        header = self.header()
+        self.assertIn("Head Person", header)
+        self.assertIn("head@example.com", header)
+        for name in ("profile", "account_security"):
+            with self.subTest(link=name):
+                self.assertIn('href="%s"' % reverse(name), header)
+        self.assertIn('action="%s"' % reverse("signout"), header)
+        self.assertIn("csrfmiddlewaretoken", header)
+
+    def test_signing_out_works(self):
+        self.assertRedirects(self.client.post(reverse("signout")), reverse("signin"))
+        self.assertEqual(self.client.get(reverse("overview")).status_code, 302)
+
+    def test_only_dashboard_pages_have_the_header(self):
+        self.client.logout()
+        for name in ("home", "projects", "signin", "signup"):
+            with self.subTest(page=name):
+                self.assertNotContains(self.client.get(reverse(name)), 'class="apphead"')
+
+    def test_the_header_is_pinned_and_the_pinned_columns_sit_below_it(self):
+        text = SPLED_CSS.read_text(encoding="utf-8")
+        block = text[text.index("Step 67"):]
+        for needle in (".apphead", "position: sticky", "top: 76px", "backdrop-filter", "@media print"):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, block)
+        self.assertNotIn("min-height", block)
+        self.assertEqual(self.client.get(reverse("settings_hub")).context["nav_org_name"], "Head Org")

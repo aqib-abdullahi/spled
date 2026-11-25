@@ -1,6 +1,7 @@
 import hashlib
 import json
 import math
+from datetime import timedelta
 from datetime import timezone as dt_timezone
 
 from django.contrib.postgres.fields import ArrayField
@@ -102,6 +103,11 @@ class Site(models.Model):
             raise ValidationError({"boundary": "The boundary shape is not valid."})
 
 VERIFY_RADIUS_M = 100
+# A location counts towards "verified on site" only if it came from the device's own
+# location service, was accurate to this many metres or better, and was this recent.
+MAX_FIX_ACCURACY_M = 100
+MAX_FIX_AGE = timedelta(minutes=10)
+SOURCE_DEVICE = "device"
 
 
 def distance_m(a, b):
@@ -155,6 +161,11 @@ class EvidenceEntry(models.Model):
     location = gis.PointField(srid=4326, null=True, blank=True)
     distance_to_site_m = models.FloatField(null=True, blank=True, editable=False)
     verified_on_site = models.BooleanField(default=False, editable=False)
+    # Where the location came from. Blank means recorded before this was kept, or no
+    # location. Only "device" can lead to "verified on site".
+    location_source = models.CharField(max_length=20, blank=True, default="", editable=False)
+    location_accuracy_m = models.FloatField(null=True, blank=True, editable=False)
+    location_fixed_at = models.DateTimeField(null=True, blank=True, editable=False)
 
     amends = models.ForeignKey(
         "self",
@@ -174,6 +185,9 @@ class EvidenceEntry(models.Model):
 
     objects = EvidenceQuerySet.as_manager()
 
+    # Not stored: how old the device's fix was (in seconds) when it was sent. Used once, on save.
+    fix_age_s = None
+
     class Meta:
         ordering = ["created_at", "id"]
         verbose_name_plural = "evidence entries"
@@ -188,6 +202,18 @@ class EvidenceEntry(models.Model):
         review = getattr(self, "review", None)
         return review.decision if review else "pending"
 
+    def _fix_is_trustworthy(self):
+        """True only for a recent, accurate fix that came from the device's own location service.
+        A location typed in, or recorded before provenance was kept, can never verify an entry."""
+        if self.location_source != SOURCE_DEVICE:
+            return False
+        if self.location_accuracy_m is None or self.location_accuracy_m > MAX_FIX_ACCURACY_M:
+            return False
+        if self.location_fixed_at is None:
+            return False
+        age = self.created_at - self.location_fixed_at
+        return timedelta(0) <= age <= MAX_FIX_AGE
+
     def _compute_verification(self):
         if self.location is None:
             self.distance_to_site_m = None
@@ -197,7 +223,8 @@ class EvidenceEntry(models.Model):
         inside = self.site.boundary is not None and self.site.boundary.contains(
             self.location
         )
-        self.verified_on_site = inside or self.distance_to_site_m <= VERIFY_RADIUS_M
+        near = inside or self.distance_to_site_m <= VERIFY_RADIUS_M
+        self.verified_on_site = near and self._fix_is_trustworthy()
 
     def compute_hash(self):
         payload = {
@@ -221,6 +248,17 @@ class EvidenceEntry(models.Model):
             payload["needs_review"] = True
         if self.photo_hashes:
             payload["photos"] = list(self.photo_hashes)
+        if self.location_source:
+            # Only entries that record where their location came from carry these, so the
+            # fingerprints of older entries are unchanged.
+            payload["location_source"] = self.location_source
+            payload["location_accuracy"] = (
+                None if self.location_accuracy_m is None else round(self.location_accuracy_m, 3)
+            )
+            payload["location_fixed_at"] = (
+                self.location_fixed_at.astimezone(dt_timezone.utc).isoformat()
+                if self.location_fixed_at else None
+            )
         text = json.dumps(payload, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -244,6 +282,8 @@ class EvidenceEntry(models.Model):
             )
             self.previous_hash = last.content_hash if last else ""
             self.created_at = timezone.now()
+            if self.fix_age_s is not None and self.location_fixed_at is None:
+                self.location_fixed_at = self.created_at - timedelta(seconds=self.fix_age_s)
             self._compute_verification()
             self.content_hash = self.compute_hash()
             super().save(*args, **kwargs)

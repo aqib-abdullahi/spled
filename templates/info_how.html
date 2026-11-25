@@ -11,8 +11,8 @@
   <p>A team member logs an entry with a note, the time, the location reported by their device and, optionally, photos. The public record shows what was logged and when. It never shows staff names or email addresses.</p>
 
   <h2>2. “Verified on site” is calculated, not claimed</h2>
-  <p>An entry is marked verified on site when its reported location is inside the project’s drawn boundary, or within {{ verify_radius }} metres of the project’s pin. Spled works this out automatically, so nobody can tick it by hand.</p>
-  <p><b>What it does not prove.</b> The location comes from the device used to log the entry. A match is a strong signal, not proof that someone was physically there.</p>
+  <p>An entry is marked verified on site only when three things are true. Its location was taken by the logging device’s own location service, not typed in. That reading was accurate to {{ max_accuracy }} metres or better and no more than {{ max_age_minutes }} minutes old when the entry was saved. And it falls inside the project’s drawn boundary, or within {{ verify_radius }} metres of the project’s pin. Spled works this out automatically, so nobody can tick it by hand, and coordinates typed into a form can never verify an entry.</p>
+  <p><b>What it does not prove.</b> The location comes from the device used to log the entry, and a determined person can make a device report a false position. A match is a strong signal, not proof that someone was physically there. Entries logged before Spled recorded where a location came from are marked “location source not recorded”.</p>
 
   <h2>3. Records cannot be quietly changed</h2>
   <p>Entries are append-only. Nobody can edit or delete one. A mistake is corrected by adding a new entry that says what changed and why. Each entry carries a SHA-256 fingerprint that includes the one before it, and the database itself refuses edits and deletions to evidence. If anything is altered, the chain stops matching and the change can be detected.</p>

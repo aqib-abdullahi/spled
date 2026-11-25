@@ -335,3 +335,103 @@ class SiteDetailTests(TestCase):
         self.login("editor")
         self.client.post(self.new(), self.data(tags=" Inspection , delivery,inspection"))
         self.assertEqual(EvidenceEntry.objects.get().tags, ["inspection", "delivery"])
+
+
+
+import re  # noqa: E402
+
+
+class TypedLocationTests(TestCase):
+    NEAR = {"latitude": "9.07", "longitude": "7.4003"}   # about 33 m from the pin
+    FAR = {"latitude": "9.07", "longitude": "7.5"}       # about 11 km away
+    FIX = {"accuracy": "12", "fix_age": "3"}
+
+    def setUp(self):
+        self.user = User.objects.create_user("typed@example.com", "pw12345678", full_name="T")
+        self.org = Organisation.objects.create(name="Typed", kind="government", verification="verified")
+        Membership.objects.create(user=self.user, organisation=self.org, role="editor")
+        self.site = Site.objects.create(
+            organisation=self.org, name="Typed Road", kind="road", location=Point(7.4, 9.07, srid=4326)
+        )
+        self.client.login(username="typed@example.com", password="pw12345678")
+        self.url = reverse("evidence_new", args=[self.site.pk])
+
+    def post(self, **extra):
+        data = {"kind": "note", "body": "Checked the culvert"}
+        data.update(extra)
+        return self.client.post(self.url, data)
+
+    def test_the_form_has_no_box_to_type_coordinates_into(self):
+        from registry.models import MAX_FIX_ACCURACY_M
+
+        html = self.client.get(self.url).content.decode()
+        for name in ("latitude", "longitude", "accuracy", "fix_age"):
+            with self.subTest(field=name):
+                tag = re.search(r'<input[^>]*name="%s"[^>]*>' % name, html).group(0)
+                self.assertIn('type="hidden"', tag)
+        self.assertIn("Use my current location", html)
+        self.assertIn("var MAX_ACCURACY = %d;" % MAX_FIX_ACCURACY_M, html)
+
+    def test_a_device_fix_near_the_pin_is_verified_and_remembered(self):
+        r = self.post(**self.NEAR, **self.FIX)
+        self.assertEqual(r.status_code, 302)
+        e = EvidenceEntry.objects.get()
+        self.assertTrue(e.verified_on_site)
+        self.assertEqual((e.location_source, e.location_accuracy_m), ("device", 12.0))
+
+    def test_coordinates_without_a_device_fix_are_refused(self):
+        r = self.post(**self.NEAR)
+        self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "can’t be typed in")
+        self.assertEqual(EvidenceEntry.objects.count(), 0)
+
+    def test_a_device_fix_far_from_the_site_is_saved_but_not_verified(self):
+        self.assertEqual(self.post(**self.FAR, **self.FIX).status_code, 302)
+        self.assertFalse(EvidenceEntry.objects.get().verified_on_site)
+
+    def test_a_vague_fix_is_not_verified_even_next_to_the_pin(self):
+        self.assertEqual(self.post(**self.NEAR, accuracy="500", fix_age="3").status_code, 302)
+        self.assertFalse(EvidenceEntry.objects.get().verified_on_site)
+
+    def test_an_old_fix_is_not_verified(self):
+        self.assertEqual(self.post(**self.NEAR, accuracy="12", fix_age="3600").status_code, 302)
+        self.assertFalse(EvidenceEntry.objects.get().verified_on_site)
+
+    def test_a_status_change_needs_a_real_nearby_device_fix(self):
+        for extra in (self.NEAR, {**self.FAR, **self.FIX}):
+            r = self.post(new_status="in_progress", **extra)
+            self.assertEqual(r.status_code, 200)
+        self.assertEqual(EvidenceEntry.objects.count(), 0)
+        self.site.refresh_from_db()
+        self.assertEqual(self.site.status, "planned")
+        self.assertEqual(self.post(new_status="in_progress", **self.NEAR, **self.FIX).status_code, 302)
+        self.site.refresh_from_db()
+        self.assertEqual(self.site.status, "in_progress")
+
+    def test_an_entry_without_a_location_still_saves_and_is_not_verified(self):
+        self.assertEqual(self.post().status_code, 302)
+        e = EvidenceEntry.objects.get()
+        self.assertFalse(e.verified_on_site)
+        self.assertEqual(e.location_source, "")
+
+    def test_a_field_check_in_needs_a_location(self):
+        r = self.post(kind="check_in")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(EvidenceEntry.objects.count(), 0)
+
+    def test_the_site_page_says_where_each_location_came_from(self):
+        self.post(**self.NEAR, **self.FIX)
+        old = EvidenceEntry(
+            site=self.site, author=self.user, kind="note", body="Older entry",
+            location=Point(7.4003, 9.07, srid=4326),
+        )
+        old.save()
+        page = self.client.get(reverse("site_detail", args=[self.site.pk]))
+        self.assertContains(page, "device location, accurate to ±12 m")
+        self.assertContains(page, "location source not recorded")
+
+    def test_the_explanation_page_states_the_device_only_rule(self):
+        self.client.logout()
+        page = self.client.get(reverse("how_it_works"))
+        self.assertContains(page, "100 metres")
+        self.assertContains(page, "can never verify an entry")

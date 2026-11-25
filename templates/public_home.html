@@ -102,7 +102,7 @@
     <div>
       <span class="eyebrow">Verified on site</span>
       <h2>A check you can’t tick by hand.</h2>
-      <p>Spled compares each entry’s reported location with the project’s boundary or pin, and locks the result into the record.</p>
+      <p>Spled checks that each entry’s location came from the device’s own location service, compares it with the project’s boundary or pin, and locks the result into the record.</p>
       <p class="lp-fine"><b>What it does not prove.</b> The location comes from the device, so a match is a strong signal, not proof of presence.</p>
       <a class="lp-link" href="{% url 'how_it_works' %}">How evidence works</a>
     </div>
@@ -141,34 +141,32 @@
 </section>
 
 <section aria-label="Frequently asked questions">
-  <div class="lp-faq-wrap">
-    <div class="lp-head">
-      <span class="eyebrow">Questions</span>
-      <h2>Good to know.</h2>
-      <p>Something else? <a href="{% url 'contact' %}"><b>Contact us</b></a>.</p>
-    </div>
-    <div class="lp-faq">
-      <details>
-        <summary>Who can see a project?</summary>
-        <p>Only projects an organisation has published, and only once Spled has verified it. Staff names and emails are never shown.</p>
-      </details>
-      <details>
-        <summary>What does “verified on site” mean?</summary>
-        <p>The entry’s reported location was inside the project boundary or near its pin. It is a strong signal, not proof someone was there.</p>
-      </details>
-      <details>
-        <summary>Can an entry be edited or deleted?</summary>
-        <p>No. Mistakes are corrected with a new entry that says what changed and why.</p>
-      </details>
-      <details>
-        <summary>Can I share a project without publishing it?</summary>
-        <p>Yes. Admins, editors and owners can create expiring share links, with an optional password, and revoke them any time.</p>
-      </details>
-      <details>
-        <summary>Does it work on a phone?</summary>
-        <p>Yes, in a phone browser, including photos. Offline capture is not available yet.</p>
-      </details>
-    </div>
+  <div class="lp-head lp-head-center">
+    <span class="eyebrow">Questions</span>
+    <h2>Good to know.</h2>
+    <p>Something else? <a href="{% url 'contact' %}"><b>Contact us</b></a>.</p>
+  </div>
+  <div class="lp-faq">
+    <details>
+      <summary>Who can see a project?</summary>
+      <p>Only projects an organisation has published, and only once Spled has verified it. Staff names and emails are never shown.</p>
+    </details>
+    <details>
+      <summary>What does “verified on site” mean?</summary>
+      <p>The location came from the logging device’s own location service, was accurate and recent, and fell inside the project boundary or near its pin. Typed coordinates never count. It is a strong signal, not proof someone was there.</p>
+    </details>
+    <details>
+      <summary>Can an entry be edited or deleted?</summary>
+      <p>No. Mistakes are corrected with a new entry that says what changed and why.</p>
+    </details>
+    <details>
+      <summary>Can I share a project without publishing it?</summary>
+      <p>Yes. Admins, editors and owners can create expiring share links, with an optional password, and revoke them any time.</p>
+    </details>
+    <details>
+      <summary>Does it work on a phone?</summary>
+      <p>Yes, in a phone browser, including photos. Offline capture is not available yet.</p>
+    </details>
   </div>
 </section>
 
@@ -189,48 +187,57 @@
 
 </div>
 <script>
-  // lp-faq-anim: smooth open and close for the FAQ. Without this the details still work.
+  // lp-faq-anim: the FAQ opens one answer at a time, with a smooth slide. Without this script
+  // the questions still open and close as plain details elements.
   (function () {
-    if (!window.Element || !Element.prototype.animate) { return; }
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
-    document.querySelectorAll(".lp-faq details").forEach(function (d) {
-      var summary = d.querySelector("summary");
-      var anim = null;
-      var closing = false;
-      function stop() {
-        if (anim) { anim.onfinish = null; anim.cancel(); anim = null; }
-      }
-      function run(from, to, done) {
-        d.style.overflow = "hidden";
-        anim = d.animate(
-          { height: [from + "px", to + "px"] },
-          { duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "forwards" }
-        );
-        anim.onfinish = function () {
-          if (done) { done(); }
-          stop();
-          d.style.overflow = "";
-        };
-      }
-      summary.addEventListener("click", function (e) {
+    var items = Array.prototype.slice.call(document.querySelectorAll(".lp-faq details"));
+    if (!items.length) { return; }
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var animate = !reduce && !!Element.prototype.animate;
+
+    function finish(d) {
+      if (d.__anim) { d.__anim.onfinish = null; d.__anim.cancel(); d.__anim = null; }
+      d.style.overflow = "";
+    }
+    function tween(d, from, to, done) {
+      finish(d);
+      d.style.overflow = "hidden";
+      d.__anim = d.animate(
+        { height: [from + "px", to + "px"] },
+        { duration: 260, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)", fill: "forwards" }
+      );
+      d.__anim.onfinish = function () { if (done) { done(); } finish(d); };
+    }
+    function openItem(d) {
+      var from = d.offsetHeight;
+      finish(d);
+      d.classList.remove("is-closing");
+      d.open = true;
+      if (animate) { tween(d, from, d.offsetHeight); }
+    }
+    function closeItem(d) {
+      if (!d.open) { return; }
+      if (!animate) { d.open = false; d.classList.remove("is-closing"); return; }
+      var from = d.offsetHeight;
+      finish(d);
+      var style = window.getComputedStyle(d);
+      var to = d.querySelector("summary").offsetHeight +
+        parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+      d.classList.add("is-closing");
+      tween(d, from, to, function () { d.open = false; d.classList.remove("is-closing"); });
+    }
+
+    var seen = false;
+    items.forEach(function (d) { if (d.open) { if (seen) { d.open = false; } seen = true; } });
+
+    items.forEach(function (d) {
+      d.querySelector("summary").addEventListener("click", function (e) {
         e.preventDefault();
-        var start = d.offsetHeight;
-        var wasClosing = closing;
-        stop();
-        if (!d.open || wasClosing) {
-          closing = false;
-          d.classList.remove("is-closing");
-          d.open = true;
-          run(start, d.offsetHeight);
+        if (!d.open || d.classList.contains("is-closing")) {
+          items.forEach(function (other) { if (other !== d) { closeItem(other); } });
+          openItem(d);
         } else {
-          closing = true;
-          d.classList.add("is-closing");
-          var closed = summary.offsetHeight + (d.offsetHeight - d.clientHeight);
-          run(start, closed, function () {
-            d.open = false;
-            closing = false;
-            d.classList.remove("is-closing");
-          });
+          closeItem(d);
         }
       });
     });

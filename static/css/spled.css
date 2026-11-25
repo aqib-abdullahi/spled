@@ -1754,3 +1754,37 @@ b, strong { font-weight: 600; }
     scrollbar-width: thin; padding: 2px 6px 8px 2px; margin: -2px -6px -8px -2px;
   }
 }
+
+/* Step 67: a pinned header above the dashboard content, with the account menu in it; the pinned
+   columns sit below it; the FAQ is centred under its own heading */
+.apphead { display: none; }
+@media print { .apphead { display: none !important; } }
+
+@media (min-width: 1024px) {
+  html { scroll-padding-top: 76px; }
+  .apphead {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    position: sticky; top: 0; z-index: 30; height: 60px; padding: 0 clamp(20px, 2.6vw, 44px);
+    background: rgba(243, 247, 245, 0.88); border-bottom: 1px solid rgba(16, 42, 42, 0.08);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .apphead-org { display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--muted); font-weight: 500; }
+  .apphead-org span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .apphead .usermenu { margin-left: auto; }
+  .apphead .usermenu summary { padding: 4px 10px 4px 4px; gap: 8px; background: #fff; border: 1px solid rgba(16, 42, 42, 0.12); }
+  .apphead .usermenu summary:hover { border-color: rgba(16, 42, 42, 0.28); }
+  .apphead .usermenu summary:focus-visible { outline: 2px solid var(--mint); outline-offset: 2px; }
+  .apphead .avatar { width: 34px; height: 34px; }
+  .app-main .overview-aside, .app-main .detailgrid .side { top: 76px; max-height: calc(100dvh - 92px); }
+}
+@media (min-width: 1280px) {
+  .app-main .site-context, .app-main .site-map { top: 76px; }
+}
+
+.lp-head-center { align-items: center; text-align: center; margin-inline: auto; }
+.lp .lp-faq { max-width: 820px; margin-inline: auto; width: 100%; }
+.lp-faq details[open] { border-color: rgba(61, 219, 176, 0.8); background: rgba(255, 255, 255, 0.92); }
+.lp-faq details p { padding-right: 36px; }
+
+/* Step 68: the remove-location button is hidden until a location is added */
+.btn[hidden], button[hidden] { display: none !important; }

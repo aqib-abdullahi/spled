@@ -39,8 +39,19 @@ class EvidenceForm(forms.Form):
     tags = forms.CharField(
         required=False, help_text="Separate with commas, e.g. inspection, delivery"
     )
-    latitude = forms.FloatField(required=False, min_value=-90, max_value=90)
-    longitude = forms.FloatField(required=False, min_value=-180, max_value=180)
+    # Filled in only by the "Use my current location" button. Nobody can type these.
+    latitude = forms.FloatField(
+        required=False, min_value=-90, max_value=90, widget=forms.HiddenInput
+    )
+    longitude = forms.FloatField(
+        required=False, min_value=-180, max_value=180, widget=forms.HiddenInput
+    )
+    accuracy = forms.FloatField(
+        required=False, min_value=0, max_value=100000, widget=forms.HiddenInput
+    )
+    fix_age = forms.FloatField(
+        required=False, min_value=0, max_value=604800, widget=forms.HiddenInput
+    )
     new_status = forms.ChoiceField(
         required=False,
         label="Also update the site’s status",
@@ -87,6 +98,11 @@ class EvidenceForm(forms.Form):
         if (lat is None) != (lon is None):
             raise forms.ValidationError(
                 "Give both latitude and longitude, or leave both empty."
+            )
+        if lat is not None and (data.get("accuracy") is None or data.get("fix_age") is None):
+            raise forms.ValidationError(
+                "Your device’s location wasn’t captured. Use the “Use my current location” "
+                "button; locations can’t be typed in."
             )
         if data.get("kind") == EvidenceEntry.Kind.CHECK_IN and lat is None:
             raise forms.ValidationError("A field check-in needs a location.")

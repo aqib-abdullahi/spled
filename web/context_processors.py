@@ -25,6 +25,7 @@ def review_nav(request):
         "nav_can_team": can(user, MANAGE_TEAM, org),
         "nav_can_export": can(user, EXPORT_REPORTS, org),
         "nav_can_share": can(user, CREATE_SHARE_LINKS, org),
+        "nav_org_name": org.name,
     }
     if result["nav_can_review"]:
         result["nav_pending_count"] = EvidenceEntry.objects.filter(

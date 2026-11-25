@@ -62,7 +62,7 @@
               {% if e.tags %}<div class="tl-tags">{% for t in e.tags %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endif %}
               <div class="entry-meta">
                 <span class="entry-author">Entry by {{ e.author.full_name }}</span>
-                {% if e.distance_to_site_m is not None %}<span class="muted">· {{ e.distance_to_site_m|floatformat:0 }} m from the site pin</span>{% endif %}
+                {% if e.distance_to_site_m is not None %}<span class="muted">· {{ e.distance_to_site_m|floatformat:0 }} m from the site pin</span>{% endif %}{% if e.location_source %}<span class="muted">· device location, accurate to ±{{ e.location_accuracy_m|floatformat:0 }} m</span>{% elif e.location %}<span class="muted">· location source not recorded</span>{% endif %}
               </div>
               {% if can_amend and e.review_state != "pending" and e.review_state != "rejected" %}<a class="amendlink" href="{% url 'evidence_amend' e.pk %}">Amend this entry</a>{% endif %}
             </div>

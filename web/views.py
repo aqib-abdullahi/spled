@@ -24,7 +24,14 @@ from organisations.permissions import (
     needs_review,
 )
 from registry.access import COUNTED, sites_for
-from registry.models import EvidenceEntry, EvidencePhoto, EvidenceReview, Site
+from registry.models import (
+    MAX_FIX_ACCURACY_M,
+    SOURCE_DEVICE,
+    EvidenceEntry,
+    EvidencePhoto,
+    EvidenceReview,
+    Site,
+)
 
 from .context import get_current_membership
 from .forms import AmendForm, EvidenceForm, SiteForm
@@ -267,16 +274,20 @@ def evidence_new(request, pk):
         )
         try:
             with transaction.atomic():
-                entry = EvidenceEntry.objects.create(
+                entry = EvidenceEntry(
                     site=site,
                     author=request.user,
                     kind=EvidenceEntry.Kind.STATUS if new_status else d["kind"],
                     body=d["body"],
                     tags=d["tags"],
                     location=point,
+                    location_source=SOURCE_DEVICE if point else "",
+                    location_accuracy_m=d["accuracy"] if point else None,
                     needs_review=contractor,
                     photo_hashes=[p.sha256 for p in photos],
                 )
+                entry.fix_age_s = d["fix_age"] if point else None
+                entry.save()
                 if new_status:
                     if org.require_onsite_for_status_changes and not entry.verified_on_site:
                         raise OnSiteRequired
@@ -306,6 +317,7 @@ def evidence_new(request, pk):
     return render(request, "evidence_form.html", {
         "active": "sites", "form": form, "site": site, "org": org,
         "allow_status": not contractor, "is_contractor": contractor,
+        "max_accuracy": MAX_FIX_ACCURACY_M,
     })
 
 

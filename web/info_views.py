@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.shortcuts import render
 
-from registry.models import VERIFY_RADIUS_M
+from registry.models import MAX_FIX_ACCURACY_M, MAX_FIX_AGE, VERIFY_RADIUS_M
 
 
 def _page(template, active):
@@ -17,6 +17,8 @@ def how_it_works(request):
     return render(request, "info_how.html", {
         "active": "how",
         "verify_radius": VERIFY_RADIUS_M,
+        "max_accuracy": MAX_FIX_ACCURACY_M,
+        "max_age_minutes": int(MAX_FIX_AGE.total_seconds() // 60),
     })
 
 

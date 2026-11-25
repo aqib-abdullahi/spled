@@ -5,9 +5,10 @@
 <h1>Log evidence</h1>
 
 <div class="evidence-layout">
-  <form method="post" class="card formgrid" enctype="multipart/form-data" novalidate>
+  <form method="post" id="evidence-form" class="card formgrid" enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% if form.non_field_errors %}<div class="alert wide" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    {% for hidden in form.hidden_fields %}{{ hidden }}{% for error in hidden.errors %}<div class="alert wide" role="alert">{{ error }}</div>{% endfor %}{% endfor %}
 
     <div class="field"><label for="{{ form.kind.id_for_label }}">{{ form.kind.label }}</label>{{ form.kind }}</div>
     {% if allow_status %}
@@ -30,16 +31,14 @@
       {% for error in form.photos.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
     </div>
 
-    <div class="field"><label for="{{ form.latitude.id_for_label }}">Latitude</label>{{ form.latitude }}
-      {% for error in form.latitude.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-    </div>
-    <div class="field"><label for="{{ form.longitude.id_for_label }}">Longitude</label>{{ form.longitude }}
-      {% for error in form.longitude.errors %}<small class="field-error" role="alert">{{ error }}</small>{% endfor %}
-    </div>
-
-    <div class="wide">
-      <button type="button" class="btn btn-small" id="locate">Use my current location</button>
+    <div class="field wide">
+      <p id="location-title" style="margin:0;font-weight:500">Location</p>
+      <div>
+        <button type="button" class="btn btn-small" id="locate" aria-describedby="location-help">Use my current location</button>
+        <button type="button" class="btn btn-small" id="clear-location" hidden>Remove location</button>
+      </div>
       <small id="locate-status" class="muted" role="status"></small>
+      <small id="location-help" class="muted">Your location comes from your device and can’t be typed in. To count as on site it needs to be accurate to {{ max_accuracy }} m or better. Without it, the entry is saved as not verified on site.</small>
     </div>
 
     <div class="actions wide">
@@ -65,24 +64,70 @@
 </div>
 
 <script>
-  // The validation script reads these. They match the limits the server enforces.
-  var photosInput = document.getElementById("id_photos");
-  if (photosInput) {
-    photosInput.setAttribute("data-max-files", "5");
-    photosInput.setAttribute("data-max-bytes", "10485760");
-  }
+  (function () {
+    // The validation script reads these. They match the limits the server enforces.
+    var photos = document.getElementById("id_photos");
+    if (photos) {
+      photos.setAttribute("data-max-files", "5");
+      photos.setAttribute("data-max-bytes", "10485760");
+    }
 
-  document.getElementById("locate").addEventListener("click", function () {
+    var MAX_ACCURACY = {{ max_accuracy }}; // metres; the server uses the same number
+    var form = document.getElementById("evidence-form");
+    var lat = document.getElementById("id_latitude");
+    var lon = document.getElementById("id_longitude");
+    var acc = document.getElementById("id_accuracy");
+    var age = document.getElementById("id_fix_age");
+    var kind = document.getElementById("id_kind");
+    var locate = document.getElementById("locate");
+    var clear = document.getElementById("clear-location");
     var out = document.getElementById("locate-status");
-    if (!navigator.geolocation) { out.textContent = " This browser can’t share its location."; return; }
-    out.textContent = " Finding your location…";
-    navigator.geolocation.getCurrentPosition(function (p) {
-      document.getElementById("id_latitude").value = p.coords.latitude.toFixed(6);
-      document.getElementById("id_longitude").value = p.coords.longitude.toFixed(6);
-      out.textContent = " Location added, accurate to about " + Math.round(p.coords.accuracy) + " m.";
-    }, function () {
-      out.textContent = " Couldn’t get your location. Allow location access, or enter it by hand.";
-    }, { enableHighAccuracy: true, timeout: 15000 });
-  });
+    var fixTime = null; // when the device took the fix, by the device's own clock
+
+    function say(text) { out.textContent = " " + text; }
+    function reset() {
+      lat.value = ""; lon.value = ""; acc.value = ""; age.value = "";
+      fixTime = null;
+      clear.hidden = true;
+    }
+
+    // After a page reload with errors, a typed-in or stale location is never carried over.
+    if (lat.value || lon.value) { reset(); say("Please add your location again."); }
+
+    locate.addEventListener("click", function () {
+      if (!navigator.geolocation) { say("This browser can’t share its location."); return; }
+      say("Finding your location…");
+      navigator.geolocation.getCurrentPosition(function (p) {
+        lat.value = p.coords.latitude.toFixed(6);
+        lon.value = p.coords.longitude.toFixed(6);
+        acc.value = (Math.round(p.coords.accuracy * 10) / 10).toString();
+        fixTime = p.timestamp;
+        clear.hidden = false;
+        var metres = Math.round(p.coords.accuracy);
+        if (p.coords.accuracy <= MAX_ACCURACY) {
+          say("Location added, accurate to about " + metres + " m.");
+        } else {
+          say("Location added, but only accurate to about " + metres + " m. That is too imprecise to count as on site (it needs " + MAX_ACCURACY + " m or better). Move somewhere with a clearer view of the sky and try again, or save it as not verified.");
+        }
+      }, function () {
+        reset();
+        say("Couldn’t get your location. Allow location access and try again, or save the entry without one.");
+      }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+    });
+
+    clear.addEventListener("click", function () { reset(); say("Location removed."); });
+
+    form.addEventListener("submit", function (e) {
+      if (fixTime !== null) {
+        // How old the fix is when it is sent, measured on the device so a wrong clock does not matter.
+        age.value = Math.max(0, (Date.now() - fixTime) / 1000).toFixed(1);
+      }
+      if (kind && kind.value === "check_in" && !lat.value) {
+        e.preventDefault();
+        say("A field check-in needs your location. Press “Use my current location”.");
+        locate.focus();
+      }
+    });
+  })();
 </script>
 {% endblock %}
